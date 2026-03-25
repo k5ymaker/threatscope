@@ -33,6 +33,7 @@ APIs from a single interactive menu.
 | **[8] WHOIS** | Registrar, creation/expiry dates, nameservers, registrant info |
 | **[9] Full IOC Report** | All relevant checks run **concurrently** (ThreadPoolExecutor) → aggregated verdict + optional JSON export |
 | **[N] Nmap Scanner** | Generic port scan · 9 common scan types (SYN/SYN-stealth/UDP/ACK/OS/version/aggressive/discovery/file) · 105 NSE vuln scripts across 12 categories (SMB/Windows, HTTP/Web, SSL/TLS, FTP, SMTP, Databases, RDP/VNC, IPMI, IRC, Misc, CVE-DB) |
+| **[W] Web Fingerprint** | WhatWeb technology detection (aggression 1–4) · Wappalyzer passive analysis · WafW00f WAF detection with evasion hints · Full concurrent scan with merged technology report + WAF evasion notes |
 
 Additional capabilities:
 - **Auto-detects IOC type** (URL / IP / domain) for the Full IOC Report
@@ -40,6 +41,55 @@ Additional capabilities:
 - **Colour-coded risk output** — red = malicious, yellow = suspicious, green = clean
 - **API key status table** on every startup showing ACTIVE vs SKIPPED sources
 - **JSON export** of full reports to `reports/<timestamp>_<ioc>.json`
+
+---
+
+## Web Fingerprinting Prerequisites
+
+ThreatScope's Web Fingerprint module wraps three optional external tools. Install whichever you need — the module works with any subset (or none — all options gracefully degrade to `SKIPPED`):
+
+### WhatWeb
+
+```bash
+# Debian / Ubuntu / Kali
+sudo apt install whatweb
+
+# macOS
+brew install whatweb
+
+# From source / RubyGems (any platform with Ruby)
+gem install whatweb
+```
+
+### WafW00f
+
+```bash
+# pip (recommended — works on all platforms)
+pip install wafw00f
+
+# Debian / Ubuntu / Kali
+sudo apt install wafw00f
+```
+
+### Wappalyzer (python-wappalyzer library)
+
+`python-wappalyzer` is included in `requirements.txt` and installed automatically:
+
+```bash
+pip install -r requirements.txt
+```
+
+If you also want the standalone Wappalyzer CLI (optional — the Python library is used by default):
+
+```bash
+# Node.js CLI (requires Node ≥ 14)
+npm install -g wappalyzer
+
+# Alternative: webtech (lightweight CLI alternative)
+pip install webtech
+```
+
+> All three tools are entirely optional. ThreatScope shows a `● READY / ○ MISSING` status panel at the top of the Web Fingerprint menu and disables unavailable scan options automatically.
 
 ---
 

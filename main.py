@@ -39,6 +39,7 @@ if _ROOT not in sys.path:
 from config import display_api_status  # noqa: E402
 from modules import dns_tools, ip_intel, url_intel, utils  # noqa: E402
 from modules.nmap_menus import show_nmap_menu  # noqa: E402
+from modules.web_fingerprint_menus import show_web_fingerprint_menu  # noqa: E402
 
 console = Console()
 
@@ -69,6 +70,7 @@ _MENU_ITEMS = [
     ("8", "WHOIS Information             (registrar · dates · nameservers)"),
     ("9", "Full IOC Report               (all checks concurrently + export)"),
     ("N", "Nmap Scanner                 (port scan · vuln scripts · common scans)"),
+    ("W", "Web Fingerprint              (WhatWeb · Wappalyzer · WafW00f)"),
     ("0", "Exit"),
 ]
 
@@ -462,6 +464,7 @@ _HANDLERS = {
     "8": handle_whois,
     "9": handle_full_ioc_report,
     "n": lambda: show_nmap_menu(),
+    "w": lambda: show_web_fingerprint_menu(),
 }
 
 
@@ -474,7 +477,7 @@ def main() -> None:
         display_menu()
         choice = Prompt.ask(
             "[bold yellow]Select option[/bold yellow]",
-            choices=[str(i) for i in range(10)] + ["n", "N"],
+            choices=[str(i) for i in range(10)] + ["n", "N", "w", "W"],
             show_choices=False,
         )
         choice = choice.lower()

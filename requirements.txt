@@ -4,3 +4,4 @@ dnspython>=2.4.0
 python-whois>=0.9.0
 PyYAML>=6.0
 python-nmap>=0.7.1
+python-wappalyzer>=0.3.1
