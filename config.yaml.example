@@ -1,0 +1,12 @@
+api_keys:
+  virustotal: "YOUR_KEY_HERE"
+  phishtank: "YOUR_KEY_HERE"
+  google_safe_browsing: "YOUR_KEY_HERE"
+  urlscan: "YOUR_KEY_HERE"
+  apivoid: "YOUR_KEY_HERE"
+  shodan: "YOUR_KEY_HERE"
+  greynoise: "YOUR_KEY_HERE" # Free community key works
+  alienvault_otx: "YOUR_KEY_HERE"
+  ipinfo: "" # Works without a key (rate-limited)
+  abstractapi_ip: "YOUR_KEY_HERE"
+  abuseipdb: "YOUR_KEY_HERE"

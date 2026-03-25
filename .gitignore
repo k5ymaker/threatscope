@@ -1,0 +1,36 @@
+# API keys — never commit this file
+config.yaml
+
+# Generated investigation reports
+reports/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.env
+.venv/
+venv/
+env/
+ENV/
+
+# Build / packaging
+*.egg-info/
+dist/
+build/
+*.so
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
