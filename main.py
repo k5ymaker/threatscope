@@ -50,6 +50,15 @@ console = Console()
 # ---------------------------------------------------------------------------
 
 _BANNER = r"""
+  ████████╗██╗  ██╗██████╗ ███████╗ █████╗ ████████╗███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+     ██╔══╝██║  ██║██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔════╝██╔════╝██╔════╝██╔═══██╗██╔══██╗███████╗
+     ██║   ███████║██████╔╝█████╗  ███████║   ██║   ███████╗██║     ██║     ██║   ██║██████╔╝██╔════╝
+     ██║   ██╔══██║██╔══██╗██╔══╝  ██╔══██║   ██║   ╚════██║██║     ██║     ██║   ██║██╔═══╝ ███████╗
+     ██║   ██║  ██║██║  ██║███████╗██║  ██║   ██║   ███████║╚██████╗╚██████╗╚██████╔╝██║     ╚════██║
+     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝  ╚═╝   ╚══════╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚═╝     ███████║
+                                                                                                ╚══════╝"""
+
+_BANNER_SIMPLE = r"""
   _____ _                    _    ____
  |_   _| |__  _ __ ___  __ _| |_ / ___|  ___ ___  _ __   ___
    | | | '_ \| '__/ _ \/ _` | __\___ \ / __/ _ \| '_ \ / _ \
@@ -58,58 +67,142 @@ _BANNER = r"""
                                                   |_|
 """
 
-_TAGLINE = "Terminal-based Threat Intelligence · Investigate URLs, IPs & Domains"
-_AUTHOR  = "Author: arunjitk"
+_TAGLINE = "Terminal-based Threat Intelligence  ·  Investigate URLs, IPs & Domains"
+_AUTHOR  = "by  arunjitk"
+_VERSION = "v1.0"
 
+# Menu entries: (key, icon, label, sources)
 _MENU_ITEMS = [
-    ("1", "URL Reputation Check          (VirusTotal · PhishTank · GSB · APIVoid)"),
-    ("2", "URL Scan & Analysis           (URLScan.io live browser scan)"),
-    ("3", "IP Reputation / Blacklist     (AbuseIPDB · VirusTotal · DNSBL)"),
-    ("4", "IP Geolocation & Info         (IPInfo · AlienVault OTX)"),
-    ("5", "IP Shodan Lookup              (open ports, banners, CVEs)"),
-    ("6", "DNS Lookup                    (A · AAAA · MX · TXT · NS · SOA)"),
-    ("7", "Reverse DNS Lookup            (PTR record)"),
-    ("8", "WHOIS Information             (registrar · dates · nameservers)"),
-    ("9", "Full IOC Report               (all checks concurrently + export)"),
-    ("N", "Nmap Scanner                 (port scan · vuln scripts · common scans)"),
-    ("W", "Web Fingerprint              (WhatWeb · Wappalyzer · WafW00f)"),
-    ("H", "Hash & File Intel            (MalwareBazaar · VirusTotal · HybridAnalysis · ThreatFox)"),
-    ("0", "Exit"),
+    ("1", "󰖂", "URL Reputation Check",   "VirusTotal · PhishTank · Google Safe Browsing · APIVoid"),
+    ("2", "󰐇", "URL Scan & Analysis",    "URLScan.io live browser scan"),
+    ("3", "󱒋", "IP Reputation",          "AbuseIPDB · VirusTotal · GreyNoise · DNSBL"),
+    ("4", "󰍉", "IP Geolocation & Info",  "IPInfo · AlienVault OTX"),
+    ("5", "󰣆", "Shodan Lookup",          "Open ports · Service banners · CVEs"),
+    ("6", "󰩠", "DNS Lookup",             "A · AAAA · MX · TXT · NS · CNAME · SOA"),
+    ("7", "󰌷", "Reverse DNS Lookup",     "PTR record resolution"),
+    ("8", "󰋼", "WHOIS Information",      "Registrar · Dates · Nameservers"),
+    ("9", "󰐊", "Full IOC Report",        "All checks concurrently + JSON export"),
+    ("N", "󰙵", "Nmap Scanner",           "Port scan · Vuln scripts · OS detection"),
+    ("W", "󰖟", "Web Fingerprint",        "WhatWeb · Wappalyzer · WafW00f"),
+    ("H", "󰡭", "Hash & File Intel",      "MalwareBazaar · VirusTotal · Hybrid Analysis · ThreatFox"),
+    ("0", "󰈆", "Exit",                   ""),
 ]
+
+# Colour scheme per menu key group
+_KEY_STYLES = {
+    "1": "bold bright_cyan",
+    "2": "bold bright_cyan",
+    "3": "bold bright_green",
+    "4": "bold bright_green",
+    "5": "bold bright_green",
+    "6": "bold bright_yellow",
+    "7": "bold bright_yellow",
+    "8": "bold bright_yellow",
+    "9": "bold bright_red",
+    "N": "bold bright_magenta",
+    "W": "bold bright_blue",
+    "H": "bold orange1",
+    "0": "dim",
+}
 
 
 def print_banner() -> None:
-    """Print the ThreatScope ASCII banner."""
-    console.print(f"[bold cyan]{_BANNER}[/bold cyan]")
+    """Print the ThreatScope ASCII banner with styled tagline and author credit."""
+    # Gradient-style banner: each line shifts colour
+    banner_colours = [
+        "bold bright_cyan",
+        "bold cyan",
+        "bold bright_cyan",
+        "bold cyan",
+        "bold bright_cyan",
+        "bold cyan",
+        "bold bright_cyan",
+    ]
+    banner_lines = _BANNER_SIMPLE.split("\n")
+    coloured_banner = Text()
+    colour_idx = 0
+    for line in banner_lines:
+        style = banner_colours[colour_idx % len(banner_colours)]
+        coloured_banner.append(line + "\n", style=style)
+        if line.strip():
+            colour_idx += 1
+
+    console.print(coloured_banner, justify="center")
+
+    # Tagline + author panel with double-edge border
+    tagline_text = Text(justify="center")
+    tagline_text.append("⚡ ", style="bold yellow")
+    tagline_text.append(_TAGLINE, style="bold white")
+    tagline_text.append("  ⚡\n", style="bold yellow")
+    tagline_text.append(_AUTHOR, style="italic bold red")
+    tagline_text.append("  ·  ", style="dim")
+    tagline_text.append(_VERSION, style="bold dim cyan")
+
     console.print(
         Panel(
-            Text(f"{_TAGLINE}\n{_AUTHOR}", style="italic dim", justify="center"),
-            border_style="cyan",
-            box=box.ROUNDED,
-            padding=(0, 4),
+            tagline_text,
+            border_style="bright_cyan",
+            box=box.DOUBLE_EDGE,
+            padding=(0, 6),
         )
     )
     console.print()
 
 
 def display_menu() -> None:
-    """Render the main interactive menu using a rich Table."""
+    """Render the main interactive menu as a styled rich Table."""
     table = Table(
-        title="THREATSCOPE MENU",
-        box=box.ROUNDED,
-        show_header=False,
-        border_style="blue",
-        title_style="bold white",
+        box=box.SIMPLE_HEAD,
+        show_header=True,
+        header_style="bold bright_white on grey23",
+        border_style="bright_cyan",
+        title_style="bold bright_white",
         expand=False,
-        padding=(0, 1),
+        padding=(0, 2),
+        show_edge=True,
+        show_lines=False,
     )
-    table.add_column("Key",  style="bold yellow", no_wrap=True, min_width=5)
-    table.add_column("Action", style="white", min_width=60)
+    table.add_column("  KEY", style="bold", no_wrap=True,  min_width=7,  justify="center")
+    table.add_column("MODULE",              no_wrap=True,  min_width=26)
+    table.add_column("SOURCES / DESCRIPTION",              min_width=52, style="dim")
 
-    for key, action in _MENU_ITEMS:
-        table.add_row(f"[{key}]", action)
+    # Section dividers
+    _DIVIDERS = {"3": "IP INTELLIGENCE", "6": "DNS & WHOIS", "9": "REPORTS", "N": "ADVANCED TOOLS", "0": ""}
 
-    console.print(table)
+    for key, _icon, label, sources in _MENU_ITEMS:
+        # Insert section header row before certain keys
+        if key in _DIVIDERS and _DIVIDERS[key]:
+            table.add_row(
+                "",
+                f"[bold dim]─── {_DIVIDERS[key]} ───[/bold dim]",
+                "",
+            )
+
+        key_style  = _KEY_STYLES.get(key, "bold white")
+        key_cell   = f"[{key_style}] {key} [/{key_style}]"
+
+        if key == "0":
+            label_cell   = f"[dim]{label}[/dim]"
+            sources_cell = ""
+        elif key == "9":
+            label_cell   = f"[bold bright_red]{label}[/bold bright_red]"
+            sources_cell = f"[dim]{sources}[/dim]"
+        else:
+            label_cell   = f"[bold white]{label}[/bold white]"
+            sources_cell = f"[dim]{sources}[/dim]"
+
+        table.add_row(key_cell, label_cell, sources_cell)
+
+    # Wrap table in a panel for a clean bordered box
+    console.print(
+        Panel(
+            table,
+            title="[bold bright_white on grey23]  THREATSCOPE — MAIN MENU  [/bold bright_white on grey23]",
+            border_style="bright_cyan",
+            box=box.DOUBLE_EDGE,
+            padding=(0, 1),
+        )
+    )
     console.print()
 
 
