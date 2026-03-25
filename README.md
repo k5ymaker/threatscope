@@ -421,12 +421,3 @@ PyYAML>=6.0           # config.yaml parsing
 `ipaddress` is part of the Python standard library — no installation needed.
 
 ---
-
-## Security Notes
-
-- **Never commit `config.yaml`** — it contains your API keys.
-  The `.gitignore` excludes it by default; use `config.yaml.example` as the template.
-- API keys are loaded at startup and never logged or printed.
-- All HTTP requests enforce a 10-second timeout to prevent hangs.
-- Rate-limit (429) and auth-failure (401/403) responses are caught and displayed
-  as friendly messages without crashing the application.
