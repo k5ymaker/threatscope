@@ -10,3 +10,5 @@ api_keys:
   ipinfo: "" # Works without a key (rate-limited)
   abstractapi_ip: "YOUR_KEY_HERE"
   abuseipdb: "YOUR_KEY_HERE"
+  hybrid_analysis: "YOUR_KEY_HERE" # https://www.hybrid-analysis.com/apikeys/info
+  malshare: "YOUR_KEY_HERE"         # https://malshare.com/register.php

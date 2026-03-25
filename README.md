@@ -34,6 +34,7 @@ APIs from a single interactive menu.
 | **[9] Full IOC Report** | All relevant checks run **concurrently** (ThreadPoolExecutor) → aggregated verdict + optional JSON export |
 | **[N] Nmap Scanner** | Generic port scan · 9 common scan types (SYN/SYN-stealth/UDP/ACK/OS/version/aggressive/discovery/file) · 105 NSE vuln scripts across 12 categories (SMB/Windows, HTTP/Web, SSL/TLS, FTP, SMTP, Databases, RDP/VNC, IPMI, IRC, Misc, CVE-DB) |
 | **[W] Web Fingerprint** | WhatWeb technology detection (aggression 1–4) · Wappalyzer passive analysis · WafW00f WAF detection with evasion hints · Full concurrent scan with merged technology report + WAF evasion notes |
+| **[H] Hash & File Intel** | VirusTotal (70+ AV engines) · MalwareBazaar (YARA + family tags) · Hybrid Analysis (sandbox detonation + MITRE ATT&CK) · Malshare · ThreatFox (C2 association) · File upload with pre-scan · Verdict summary banner |
 
 Additional capabilities:
 - **Auto-detects IOC type** (URL / IP / domain) for the Full IOC Report
@@ -41,6 +42,30 @@ Additional capabilities:
 - **Colour-coded risk output** — red = malicious, yellow = suspicious, green = clean
 - **API key status table** on every startup showing ACTIVE vs SKIPPED sources
 - **JSON export** of full reports to `reports/<timestamp>_<ioc>.json`
+
+---
+
+## Hash & File Intelligence
+
+### Hash & File Intelligence API Keys
+
+| Service | Key Required | Free Registration |
+|---|---|---|
+| **VirusTotal** | ✅ Yes (already in config) | https://www.virustotal.com/gui/sign-in |
+| **MalwareBazaar** | ❌ No key needed | Public API — https://mb-api.abuse.ch/api/v1/ |
+| **ThreatFox** | ❌ No key needed | Public API — https://threatfox-api.abuse.ch/api/v1/ |
+| **Hybrid Analysis** | ✅ Yes | https://www.hybrid-analysis.com/apikeys/info |
+| **Malshare** | ✅ Yes | https://malshare.com/register.php |
+
+Add keys to `config.yaml`:
+
+```yaml
+api_keys:
+  hybrid_analysis:  "YOUR_KEY_HERE"
+  malshare:         "YOUR_KEY_HERE"
+```
+
+MalwareBazaar and ThreatFox require no registration — they appear as `● ACTIVE` automatically on every startup.
 
 ---
 

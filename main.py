@@ -40,6 +40,7 @@ from config import display_api_status  # noqa: E402
 from modules import dns_tools, ip_intel, url_intel, utils  # noqa: E402
 from modules.nmap_menus import show_nmap_menu  # noqa: E402
 from modules.web_fingerprint_menus import show_web_fingerprint_menu  # noqa: E402
+from modules.hash_menus import show_hash_menu  # noqa: E402
 
 console = Console()
 
@@ -58,6 +59,7 @@ _BANNER = r"""
 """
 
 _TAGLINE = "Terminal-based Threat Intelligence · Investigate URLs, IPs & Domains"
+_AUTHOR  = "Author: arunjitk"
 
 _MENU_ITEMS = [
     ("1", "URL Reputation Check          (VirusTotal · PhishTank · GSB · APIVoid)"),
@@ -71,6 +73,7 @@ _MENU_ITEMS = [
     ("9", "Full IOC Report               (all checks concurrently + export)"),
     ("N", "Nmap Scanner                 (port scan · vuln scripts · common scans)"),
     ("W", "Web Fingerprint              (WhatWeb · Wappalyzer · WafW00f)"),
+    ("H", "Hash & File Intel            (MalwareBazaar · VirusTotal · HybridAnalysis · ThreatFox)"),
     ("0", "Exit"),
 ]
 
@@ -80,7 +83,7 @@ def print_banner() -> None:
     console.print(f"[bold cyan]{_BANNER}[/bold cyan]")
     console.print(
         Panel(
-            Text(_TAGLINE, style="italic dim", justify="center"),
+            Text(f"{_TAGLINE}\n{_AUTHOR}", style="italic dim", justify="center"),
             border_style="cyan",
             box=box.ROUNDED,
             padding=(0, 4),
@@ -465,6 +468,7 @@ _HANDLERS = {
     "9": handle_full_ioc_report,
     "n": lambda: show_nmap_menu(),
     "w": lambda: show_web_fingerprint_menu(),
+    "h": lambda: show_hash_menu(),
 }
 
 
@@ -477,7 +481,7 @@ def main() -> None:
         display_menu()
         choice = Prompt.ask(
             "[bold yellow]Select option[/bold yellow]",
-            choices=[str(i) for i in range(10)] + ["n", "N", "w", "W"],
+            choices=[str(i) for i in range(10)] + ["n", "N", "w", "W", "h", "H"],
             show_choices=False,
         )
         choice = choice.lower()

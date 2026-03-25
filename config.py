@@ -35,6 +35,8 @@ _ENV_VAR_MAP: dict[str, str] = {
     "ipinfo":             "IPINFO_API_KEY",
     "abstractapi_ip":     "ABSTRACTAPI_KEY",
     "abuseipdb":          "ABUSEIPDB_API_KEY",
+    "hybrid_analysis":    "HYBRID_ANALYSIS_API_KEY",
+    "malshare":           "MALSHARE_API_KEY",
 }
 
 _API_LABELS: dict[str, str] = {
@@ -49,6 +51,8 @@ _API_LABELS: dict[str, str] = {
     "ipinfo":               "IPInfo",
     "abstractapi_ip":       "AbstractAPI (IP)",
     "abuseipdb":            "AbuseIPDB",
+    "hybrid_analysis":      "Hybrid Analysis",
+    "malshare":             "Malshare",
 }
 
 
@@ -112,6 +116,10 @@ def display_api_status() -> None:
             source = "—"
 
         table.add_row(label, status, source)
+
+    # No-key-required services — always shown as ACTIVE
+    table.add_row("MalwareBazaar", "[bold green]● ACTIVE[/bold green]", "No key required")
+    table.add_row("ThreatFox",     "[bold green]● ACTIVE[/bold green]", "No key required")
 
     console.print(table)
     console.print()
