@@ -32,6 +32,7 @@ APIs from a single interactive menu.
 | **[7] Reverse DNS** | PTR record lookup for any IP address |
 | **[8] WHOIS** | Registrar, creation/expiry dates, nameservers, registrant info |
 | **[9] Full IOC Report** | All relevant checks run **concurrently** (ThreadPoolExecutor) → aggregated verdict + optional JSON export |
+| **[N] Nmap Scanner** | Generic port scan · 9 common scan types (SYN/SYN-stealth/UDP/ACK/OS/version/aggressive/discovery/file) · 105 NSE vuln scripts across 12 categories (SMB/Windows, HTTP/Web, SSL/TLS, FTP, SMTP, Databases, RDP/VNC, IPMI, IRC, Misc, CVE-DB) |
 
 Additional capabilities:
 - **Auto-detects IOC type** (URL / IP / domain) for the Full IOC Report
@@ -39,6 +40,35 @@ Additional capabilities:
 - **Colour-coded risk output** — red = malicious, yellow = suspicious, green = clean
 - **API key status table** on every startup showing ACTIVE vs SKIPPED sources
 - **JSON export** of full reports to `reports/<timestamp>_<ioc>.json`
+
+---
+
+## Nmap Prerequisites
+
+ThreatScope's Nmap module requires the **nmap binary** installed separately from `python-nmap`:
+
+```bash
+# Debian / Ubuntu / Kali (recommended)
+sudo apt install nmap
+
+# macOS
+brew install nmap
+
+# Windows — download installer from https://nmap.org/download.html
+# Tick "Add Nmap to PATH" during installation
+```
+
+Scans requiring root/sudo (OS detection, SYN stealth, ACK, UDP, aggressive):
+
+```bash
+sudo python main.py
+```
+
+Non-privileged scans (generic, version, specific ports, vuln scripts):
+
+```bash
+python main.py
+```
 
 ---
 

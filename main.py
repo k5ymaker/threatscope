@@ -38,6 +38,7 @@ if _ROOT not in sys.path:
 
 from config import display_api_status  # noqa: E402
 from modules import dns_tools, ip_intel, url_intel, utils  # noqa: E402
+from modules.nmap_menus import show_nmap_menu  # noqa: E402
 
 console = Console()
 
@@ -67,6 +68,7 @@ _MENU_ITEMS = [
     ("7", "Reverse DNS Lookup            (PTR record)"),
     ("8", "WHOIS Information             (registrar · dates · nameservers)"),
     ("9", "Full IOC Report               (all checks concurrently + export)"),
+    ("N", "Nmap Scanner                 (port scan · vuln scripts · common scans)"),
     ("0", "Exit"),
 ]
 
@@ -459,6 +461,7 @@ _HANDLERS = {
     "7": handle_reverse_dns,
     "8": handle_whois,
     "9": handle_full_ioc_report,
+    "n": lambda: show_nmap_menu(),
 }
 
 
@@ -471,9 +474,10 @@ def main() -> None:
         display_menu()
         choice = Prompt.ask(
             "[bold yellow]Select option[/bold yellow]",
-            choices=[str(i) for i in range(10)],
+            choices=[str(i) for i in range(10)] + ["n", "N"],
             show_choices=False,
         )
+        choice = choice.lower()
 
         if choice == "0":
             console.print("\n[bold blue]Goodbye. Stay safe out there.[/bold blue]\n")
