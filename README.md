@@ -1,10 +1,3 @@
-# ThreatScope v1.0
-
-**ThreatScope** is a production-ready, terminal-based Python threat intelligence
-application that lets analysts rapidly investigate Indicators of Compromise (IOCs)
-— URLs, IP addresses, and domains — against multiple free/freemium threat intel
-APIs from a single interactive menu.
-
 ```
   _____ _                    _    ____
  |_   _| |__  _ __ ___  __ _| |_ / ___|  ___ ___  _ __   ___
@@ -12,459 +5,486 @@ APIs from a single interactive menu.
    | | | | | | | |  __/ (_| | |_ ___) | (_| (_) | |_) |  __/
    |_| |_| |_|_|  \___|\__,_|\__|____/ \___\___/| .__/ \___|
                                                   |_|
-  Terminal-based Threat Intelligence · Investigate URLs, IPs & Domains
+         Terminal-based Threat Intelligence · v1.0 · by arunjitk
 ```
 
-> **Screenshot placeholder** — run `python main.py` to see the live terminal UI.
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square&logo=python)
+![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+![Terminal](https://img.shields.io/badge/UI-Rich%20Terminal-cyan?style=flat-square)
+![APIs](https://img.shields.io/badge/APIs-20%2B%20Integrated-orange?style=flat-square)
+
+</div>
 
 ---
 
-## Features
+**ThreatScope** is a production-ready, terminal-based Python threat intelligence platform for security analysts. Investigate URLs, IP addresses, domains, file hashes, emails, CVEs, and SSL certificates across 20+ threat intelligence sources — all from a single animated interactive menu.
 
-| Menu Option | What It Does |
+- **No crashes** on missing API keys — every source degrades gracefully to `SKIPPED`
+- **Animated live spinners** on every network call with elapsed time display
+- **Concurrent scanning** via ThreadPoolExecutor for multi-source reports
+- **Export everywhere** — JSON, CSV, TXT output to `reports/`
+- **Dependency Manager** built-in — scans, installs, and verifies all tools + API keys
+
+---
+
+## Table of Contents
+
+- [Main Menu](#main-menu)
+- [Module Reference](#module-reference)
+- [API Keys](#api-keys)
+- [System Dependencies](#system-dependencies)
+- [Installation](#installation)
+  - [Linux / Kali / macOS](#linux--kali--macos)
+  - [Windows](#windows)
+- [Configuration](#configuration)
+- [Usage Examples](#usage-examples)
+- [Verdict Levels](#verdict-levels)
+- [Project Structure](#project-structure)
+- [Full Dependency Reference](#full-dependency-reference)
+
+---
+
+## Main Menu
+
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                      THREATSCOPE — MAIN MENU                                ║
+╠═══════╦══════════════════════════╦═════════════════════════════════════════╣
+║  KEY  ║  MODULE                  ║  SOURCES / DESCRIPTION                  ║
+╠═══════╬══════════════════════════╬═════════════════════════════════════════╣
+║   1   ║  URL Reputation Check    ║  VirusTotal · PhishTank · GSB · APIVoid ║
+║   2   ║  URL Scan & Analysis     ║  URLScan.io live browser scan           ║
+║  ─── IP INTELLIGENCE ───                                                    ║
+║   3   ║  IP Reputation           ║  AbuseIPDB · VirusTotal · GreyNoise     ║
+║   4   ║  IP Geolocation & Info   ║  IPInfo · AlienVault OTX                ║
+║   5   ║  Shodan Lookup           ║  Open ports · Services · CVEs           ║
+║  ─── DNS & WHOIS ───                                                        ║
+║   6   ║  DNS Lookup              ║  A · AAAA · MX · TXT · NS · CNAME · SOA║
+║   7   ║  Reverse DNS             ║  PTR record resolution                  ║
+║   8   ║  WHOIS Information       ║  Registrar · Dates · Nameservers        ║
+║  ─── REPORTS ───                                                            ║
+║   9   ║  Full IOC Report         ║  All checks concurrent + JSON export    ║
+║  ─── ADVANCED TOOLS ───                                                     ║
+║   N   ║  Nmap Scanner            ║  Port scan · Vuln scripts · OS detect   ║
+║   W   ║  Web Fingerprint         ║  WhatWeb · Wappalyzer · WafW00f         ║
+║   H   ║  Hash & File Intel       ║  MalwareBazaar · VT · Hybrid Analysis   ║
+║   O   ║  OSINT Recon             ║  theHarvester · Wayback · Metadata      ║
+║  ─── EXTENDED INTELLIGENCE ───                                              ║
+║   E   ║  Email Intelligence      ║  HIBP · EmailRep · Holehe · DNS audit   ║
+║   S   ║  Subdomain & ASN Recon   ║  crt.sh · HackerTarget · Sublist3r      ║
+║   C   ║  CVE Intelligence        ║  NVD · CISA KEV · searchsploit · EPSS   ║
+║   T   ║  SSL/TLS Analyzer        ║  Cert info · Qualys SSL Labs            ║
+║   F   ║  Live Threat Feeds       ║  URLhaus · ThreatFox · Feodo · SSLBL    ║
+║   M   ║  MITRE ATT&CK Mapper     ║  Technique · Group · Software · Tactic  ║
+║  ─── UTILITIES ───                                                          ║
+║   D   ║  Dependency Manager      ║  Scan · install · verify tools + keys   ║
+║   0   ║  Exit                    ║                                         ║
+╚═══════╩══════════════════════════╩═════════════════════════════════════════╝
+```
+
+---
+
+## Module Reference
+
+### `[1]` URL Reputation Check
+Checks a URL across four independent reputation engines simultaneously.
+
+| Source | What it checks |
 |---|---|
-| **[1] URL Reputation** | VirusTotal engine scan · PhishTank phishing check · Google Safe Browsing · APIVoid |
-| **[2] URL Scan** | URLScan.io live browser scan — page metadata, contacted domains/IPs, verdict |
-| **[3] IP Reputation** | AbuseIPDB abuse history · VirusTotal votes · GreyNoise · Spamhaus/SpamCop DNSBL |
-| **[4] IP Geolocation** | IPInfo (city, org, timezone, lat/lng) · AlienVault OTX (pulse count, threat score) |
-| **[5] Shodan Lookup** | Open ports, service banners, OS fingerprint, known CVEs |
-| **[6] DNS Lookup** | A · AAAA · MX · NS · TXT · CNAME · SOA records via dnspython |
-| **[7] Reverse DNS** | PTR record lookup for any IP address |
-| **[8] WHOIS** | Registrar, creation/expiry dates, nameservers, registrant info |
-| **[9] Full IOC Report** | All relevant checks run **concurrently** (ThreadPoolExecutor) → aggregated verdict + optional JSON export |
-| **[N] Nmap Scanner** | Generic port scan · 9 common scan types (SYN/SYN-stealth/UDP/ACK/OS/version/aggressive/discovery/file) · 105 NSE vuln scripts across 12 categories (SMB/Windows, HTTP/Web, SSL/TLS, FTP, SMTP, Databases, RDP/VNC, IPMI, IRC, Misc, CVE-DB) |
-| **[W] Web Fingerprint** | WhatWeb technology detection (aggression 1–4) · Wappalyzer passive analysis · WafW00f WAF detection with evasion hints · Full concurrent scan with merged technology report + WAF evasion notes |
-| **[H] Hash & File Intel** | VirusTotal (70+ AV engines) · MalwareBazaar (YARA + family tags) · Hybrid Analysis (sandbox detonation + MITRE ATT&CK) · Malshare · ThreatFox (C2 association) · File upload with pre-scan · Verdict summary banner |
-| **[O] OSINT Recon** | theHarvester (emails + subdomains from Google/Bing/crt.sh/OTX) · BuiltWith + Wappalyzer (tech stack + security headers) · Wayback Machine (domain history + snapshots) · Exposed files check (80+ sensitive paths) · Metadata extraction (exiftool/PyMuPDF — GPS, author, device data) |
-
-Additional capabilities:
-- **Auto-detects IOC type** (URL / IP / domain) for the Full IOC Report
-- **Graceful API handling** — missing keys produce a `SKIPPED` notice, never a crash
-- **Colour-coded risk output** — red = malicious, yellow = suspicious, green = clean
-- **API key status table** on every startup showing ACTIVE vs SKIPPED sources
-- **JSON export** of full reports to `reports/<timestamp>_<ioc>.json`
+| **VirusTotal** | 90+ AV/security engine verdicts |
+| **PhishTank** | Known phishing URL database |
+| **Google Safe Browsing** | Malware and phishing detection (v4 API) |
+| **APIVoid** | Domain/URL blacklist reputation score |
 
 ---
 
-## Hash & File Intelligence
+### `[2]` URL Scan & Analysis
+Submits a URL to URLScan.io for a live headless browser scan. Returns page screenshot metadata, contacted IPs, loaded domains, TLS info, and an overall verdict.
 
-### Hash & File Intelligence API Keys
+---
 
-| Service | Key Required | Free Registration |
+### `[3]` IP Reputation
+Multi-source reputation check for any IPv4/IPv6 address.
+
+| Source | What it checks |
+|---|---|
+| **AbuseIPDB** | Abuse report count, confidence score, categories |
+| **VirusTotal** | Community votes and engine detections |
+| **GreyNoise** | Internet noise / scanner classification |
+| **Spamhaus DNSBL** | zen.spamhaus.org · SpamCop · Barracuda blacklist |
+
+---
+
+### `[4]` IP Geolocation & Info
+| Source | Data returned |
+|---|---|
+| **IPInfo** | City, region, country, ISP, timezone, lat/lng |
+| **AlienVault OTX** | Pulse count, malware families, threat score |
+
+---
+
+### `[5]` Shodan Lookup
+Returns open ports, running services, service banners, operating system fingerprint, hostnames, and CVEs associated with the IP — sourced directly from Shodan's passive scan data.
+
+---
+
+### `[6–8]` DNS Lookup / Reverse DNS / WHOIS
+- **DNS Lookup** — Queries all record types: `A`, `AAAA`, `MX`, `NS`, `TXT`, `CNAME`, `SOA`
+- **Reverse DNS** — PTR record resolution for any IP
+- **WHOIS** — Registrar, creation/expiry dates, nameservers, registrant country
+
+---
+
+### `[9]` Full IOC Report
+Auto-detects the input type (URL / IP / domain) and fans out all relevant checks concurrently via `ThreadPoolExecutor`. Produces a consolidated verdict banner and offers JSON export to `reports/`.
+
+**Verdict levels:** `CLEAN` → `LOW` → `MEDIUM` → `HIGH` → `CRITICAL`
+
+---
+
+### `[N]` Nmap Scanner
+Full-featured port scanner with 70+ scan profiles and 100+ NSE vulnerability scripts.
+
+**Scan types:**
+- Generic · Service version · OS detection · SYN stealth · ACK · UDP · Aggressive
+- Discovery ping · Scan from file · Custom port ranges
+
+**NSE script categories** (100+ scripts across 12 categories):
+
+| Category | Examples |
+|---|---|
+| SMB / Windows | smb-vuln-ms17-010 (EternalBlue), smb-vuln-ms08-067, smb2-security-mode |
+| HTTP / Web | http-title, http-methods, http-auth, http-shellshock, http-slowloris |
+| SSL / TLS | ssl-heartbleed, ssl-poodle, ssl-ccs-injection, ssl-enum-ciphers |
+| FTP | ftp-anon, ftp-bounce, ftp-vsftpd-backdoor |
+| SMTP / Mail | smtp-vuln-cve2010-4344, smtp-open-relay |
+| Databases | ms-sql-info, mysql-info, redis-info, mongodb-info |
+| RDP / VNC | rdp-vuln-ms12-020, vnc-info, vnc-brute |
+| IPMI / ICS | ipmi-version, ipmi-cipher-zero |
+| DNS | dns-zone-transfer, dns-recursion, dns-brute |
+| CVE database | vulners (queries Vulners for CVEs by service/version) |
+
+> Root/sudo required for SYN stealth, ACK, UDP, OS detection, and aggressive scans.
+
+---
+
+### `[W]` Web Fingerprint
+Comprehensive technology stack and WAF identification.
+
+| Tool | Purpose |
+|---|---|
+| **WhatWeb** | CMS, framework, server, analytics detection (aggression 1–4) |
+| **Wappalyzer** | Passive technology profiling via `python-wappalyzer` |
+| **WafW00f** | WAF/IDS detection with bypass evasion hints |
+| **Full scan** | All three run concurrently, results merged into a unified technology report |
+
+---
+
+### `[H]` Hash & File Intel
+Lookup or upload files/hashes across five threat intelligence sources.
+
+| Source | Capabilities |
+|---|---|
+| **VirusTotal** | 90+ engine scan, file upload, family classification |
+| **MalwareBazaar** | YARA hits, malware family, download count (no key needed) |
+| **Hybrid Analysis** | Full sandbox detonation, MITRE ATT&CK mapping, network IOCs |
+| **Malshare** | Malware sample repository lookup |
+| **ThreatFox** | C2 association, malware family, confidence (no key needed) |
+
+Accepts MD5, SHA1, and SHA256. Auto-detects hash type. Supports local file upload with pre-scan hash computation.
+
+---
+
+### `[O]` OSINT Recon
+Full domain reconnaissance suite.
+
+| Feature | Details |
+|---|---|
+| **theHarvester** | Email addresses + subdomains from Google, Bing, crt.sh, OTX, Baidu |
+| **Tech Stack** | BuiltWith API + Wappalyzer — frameworks, CDNs, analytics, security headers |
+| **Wayback Machine** | Domain history, snapshot listing, earliest/latest capture dates |
+| **Exposed Files** | 80+ sensitive path checks (admin panels, `.env`, `.git`, backups, config files) |
+| **Metadata Extraction** | GPS, author, device, software from remote or local files via exiftool / PyMuPDF |
+| **Full Recon** | All sources run in one combined report |
+
+---
+
+### `[E]` Email Intelligence
+| Source | What it checks |
+|---|---|
+| **HaveIBeenPwned** | Breach database lookups — breach names, dates, data classes |
+| **EmailRep.io** | Reputation score, suspicious flags, deliverability signals |
+| **Holehe** | Checks 100+ services to see if the email is registered |
+| **DNS Security Audit** | MX, SPF, DKIM, DMARC, BIMI record validation for the sender domain |
+
+---
+
+### `[S]` Subdomain & ASN Recon
+| Option | Source | Details |
 |---|---|---|
-| **VirusTotal** | ✅ Yes (already in config) | https://www.virustotal.com/gui/sign-in |
-| **MalwareBazaar** | ❌ No key needed | Public API — https://mb-api.abuse.ch/api/v1/ |
-| **ThreatFox** | ❌ No key needed | Public API — https://threatfox-api.abuse.ch/api/v1/ |
-| **Hybrid Analysis** | ✅ Yes | https://www.hybrid-analysis.com/apikeys/info |
-| **Malshare** | ✅ Yes | https://malshare.com/register.php |
+| 1 | **crt.sh** | Certificate Transparency log enumeration |
+| 2 | **HackerTarget** | Passive DNS hostsearch |
+| 3 | **BGPView** | ASN or IP prefix → name, country, RIR, description |
+| 4 | **RIPEstat** | IP/prefix → routing data, ASN holder, geolocation |
+| 5 | **SecurityTrails** | Historical DNS + subdomain data (API key required) |
+| 6 | **Sublist3r** | Multi-engine subdomain enumeration (Quick / Standard / Full+Brute) |
+| 7 | **Full Report** | crt.sh + HackerTarget + SecurityTrails + Sublist3r combined, deduped, exportable |
 
-Add keys to `config.yaml`:
+All results offer **CSV / TXT / JSON export** to `reports/` after each scan. The full report runs all sources concurrently and merges unique subdomains across all.
+
+> Brute-force mode (Sublist3r option 3) requires typing `YES` at a red confirmation prompt.
+
+---
+
+### `[C]` CVE Intelligence
+| Source | Details |
+|---|---|
+| **NVD NIST** | CVSS v3/v2 scores, description, CWE, reference links |
+| **CISA KEV** | Checks if CVE is in the Known Exploited Vulnerabilities catalog |
+| **searchsploit** | Local ExploitDB search — returns matching module paths |
+| **Vulners** | Full CVE details + EPSS exploit probability score |
+
+---
+
+### `[T]` SSL/TLS Analyzer
+| Feature | Details |
+|---|---|
+| **Certificate grab** | Subject, issuer, SANs, validity window, fingerprint, signature algorithm |
+| **Qualys SSL Labs** | Full A–F grade scan including cipher strength, protocol support, known vulnerabilities |
+
+---
+
+### `[F]` Live Threat Feeds
+Real-time lookups against abuse.ch and allied blocklists. No API keys required for any source.
+
+| Feed | Lookup target |
+|---|---|
+| **URLhaus** | URL, domain, or IP — malware distribution status |
+| **ThreatFox** | IP, domain, or URL IOC — malware family, C2 confidence |
+| **Feodo Tracker** | IP → C2 botnet blocklist (Emotet, Dridex, QakBot, etc.) |
+| **SSL Blacklist (SSLBL)** | SSL certificate fingerprint or JA3 hash |
+| **Feed Summary** | Live statistics from all abuse.ch feeds |
+
+---
+
+### `[M]` MITRE ATT&CK Mapper
+Offline-capable ATT&CK explorer using the official STIX bundle (cached at `~/.threatscope/enterprise-attack.json`).
+
+| Option | Details |
+|---|---|
+| **Technique lookup** | T-ID or subtechnique (e.g. `T1059.001`) → name, tactic, platforms, description |
+| **Group lookup** | APT group by name or G-ID → aliases, techniques used, description |
+| **Software lookup** | Malware/tool by name or S-ID → type, techniques, associated groups |
+| **IOC → ATT&CK mapping** | Attempts to correlate an IOC to relevant techniques |
+| **Tactic explorer** | Browse all 14 tactics and their techniques |
+
+> Downloaded from GitHub on first use. No TAXII server required.
+
+---
+
+### `[D]` Dependency Manager
+Built-in tool management system.
+
+| Option | Function |
+|---|---|
+| **1** | Full dependency report — Python packages, system binaries, API key status |
+| **2** | Auto-install all missing required dependencies |
+| **3** | Install a single dependency (pick from table) |
+| **4** | Show OS-appropriate install commands for all tools |
+| **5** | API key registration URLs |
+| **6** | Missing required dependencies only |
+| **7** | Missing API keys only |
+| **8** | Re-scan all dependencies |
+| **9** | Combined API key status + dependency health view |
+
+---
+
+## API Keys
+
+Copy `config.yaml.example` to `config.yaml` and fill in your keys. Missing keys are skipped — the tool runs normally with any subset.
 
 ```yaml
 api_keys:
-  hybrid_analysis:  "YOUR_KEY_HERE"
-  malshare:         "YOUR_KEY_HERE"
+
+  # ── URL INTELLIGENCE ─────────────────────────────────────────────────────
+  virustotal:           "YOUR_KEY"   # virustotal.com/gui/sign-in
+  phishtank:            "YOUR_KEY"   # phishtank.com/register.php
+  google_safe_browsing: "YOUR_KEY"   # developers.google.com/safe-browsing
+  urlscan:              "YOUR_KEY"   # urlscan.io/user/signup
+  apivoid:              "YOUR_KEY"   # apivoid.com/register/
+
+  # ── IP INTELLIGENCE ──────────────────────────────────────────────────────
+  shodan:               "YOUR_KEY"   # account.shodan.io/register
+  greynoise:            "YOUR_KEY"   # greynoise.io/signup  (free community key works)
+  alienvault_otx:       "YOUR_KEY"   # otx.alienvault.com
+  ipinfo:               ""           # works without key (50k req/month free)
+  abstractapi_ip:       "YOUR_KEY"   # app.abstractapi.com/users/signup
+  abuseipdb:            "YOUR_KEY"   # abuseipdb.com/register
+
+  # ── HASH & FILE INTELLIGENCE ─────────────────────────────────────────────
+  hybrid_analysis:      "YOUR_KEY"   # hybrid-analysis.com/apikeys/info
+  malshare:             "YOUR_KEY"   # malshare.com/register.php
+
+  # ── OSINT / WEB FINGERPRINT ──────────────────────────────────────────────
+  builtwith:            "YOUR_KEY"   # api.builtwith.com/signup  (free tier)
+
+  # ── EMAIL INTELLIGENCE ───────────────────────────────────────────────────
+  hibp:                 "YOUR_KEY"   # haveibeenpwned.com/API/Key  (~$3.50/month)
+  emailrep:             "YOUR_KEY"   # emailrep.io/key
+
+  # ── SUBDOMAIN & ASN RECON ────────────────────────────────────────────────
+  securitytrails:       "YOUR_KEY"   # securitytrails.com/corp/api  (free tier)
+
+  # ── CVE INTELLIGENCE ─────────────────────────────────────────────────────
+  nvd:                  "YOUR_KEY"   # nvd.nist.gov/developers/request-an-api-key (free)
+  vulners:              "YOUR_KEY"   # vulners.com/userinfo  (free tier)
+
+  # ── GEO / PROXY INTELLIGENCE ─────────────────────────────────────────────
+  iphub:                "YOUR_KEY"   # iphub.info/apiKey/newFree  (free tier)
 ```
 
-MalwareBazaar and ThreatFox require no registration — they appear as `● ACTIVE` automatically on every startup.
+**No-key sources** (always active, zero configuration):
+
+| Source | Module |
+|---|---|
+| MalwareBazaar, ThreatFox | Hash & File Intel |
+| Wayback Machine | OSINT Recon |
+| crt.sh, HackerTarget, BGPView, RIPEstat | Subdomain Recon |
+| CISA KEV | CVE Intelligence |
+| URLhaus, Feodo Tracker, SSL Blacklist, ThreatFox IOC | Live Threat Feeds |
+| Qualys SSL Labs | SSL/TLS Analyzer |
+| MITRE ATT&CK (GitHub STIX bundle) | MITRE ATT&CK Mapper |
+
+Alternatively, set keys via environment variables:
+
+```bash
+export VT_API_KEY="..."
+export ABUSEIPDB_API_KEY="..."
+export SHODAN_API_KEY="..."
+export OTX_API_KEY="..."
+# See config.py for the full env var mapping
+```
 
 ---
 
-## OSINT Recon — Setup & Prerequisites
+## System Dependencies
 
-### System tools (install separately)
+These binaries are separate from Python packages and must be installed at the OS level. All are optional — ThreatScope degrades gracefully if missing.
 
-```bash
-# theHarvester — email and subdomain harvesting
-sudo apt install theharvester         # Kali / Debian / Ubuntu
-# or:
-pip install theHarvester
-
-# exiftool — file metadata extraction
-sudo apt install libimage-exiftool-perl   # Kali / Debian / Ubuntu
-brew install exiftool                      # macOS
-# Windows: https://exiftool.org/install.html
-```
-
-### Python packages
-
-```bash
-pip install python-wappalyzer PyMuPDF
-```
-
-### API keys
-
-| Service | Key Required | Free Registration |
+| Binary | Used By | Install |
 |---|---|---|
-| **BuiltWith** | ✅ Yes (free tier) | https://api.builtwith.com/signup |
-| **Wayback Machine** | ❌ No key needed | Public API |
-| **theHarvester** | ❌ No key needed | Open source binary |
-| **Wappalyzer** | ❌ No key needed | Python library — local only |
-| **exiftool** | ❌ No key needed | Open source binary |
+| `nmap` | Nmap Scanner | `sudo apt install nmap` · `brew install nmap` |
+| `theHarvester` | OSINT Recon | `sudo apt install theharvester` · `pip install theHarvester` |
+| `exiftool` | OSINT Recon | `sudo apt install libimage-exiftool-perl` · `brew install exiftool` |
+| `searchsploit` | CVE Intelligence | `sudo apt install exploitdb` · `brew install exploitdb` |
+| `holehe` | Email Intelligence | `pip install holehe` |
+| `sublist3r` | Subdomain Recon | `sudo apt install sublist3r` · `pip install sublist3r` |
+| `whatweb` | Web Fingerprint | `sudo apt install whatweb` · `brew install whatweb` |
+| `wafw00f` | Web Fingerprint | `pip install wafw00f` · `sudo apt install wafw00f` |
 
-Add BuiltWith key to `config.yaml`:
-
-```yaml
-api_keys:
-  builtwith: "YOUR_KEY_HERE"
-```
-
----
-
-## Web Fingerprinting Prerequisites
-
-ThreatScope's Web Fingerprint module wraps three optional external tools. Install whichever you need — the module works with any subset (or none — all options gracefully degrade to `SKIPPED`):
-
-### WhatWeb
-
-```bash
-# Debian / Ubuntu / Kali
-sudo apt install whatweb
-
-# macOS
-brew install whatweb
-
-# From source / RubyGems (any platform with Ruby)
-gem install whatweb
-```
-
-### WafW00f
-
-```bash
-# pip (recommended — works on all platforms)
-pip install wafw00f
-
-# Debian / Ubuntu / Kali
-sudo apt install wafw00f
-```
-
-### Wappalyzer (python-wappalyzer library)
-
-`python-wappalyzer` is included in `requirements.txt` and installed automatically:
-
-```bash
-pip install -r requirements.txt
-```
-
-If you also want the standalone Wappalyzer CLI (optional — the Python library is used by default):
-
-```bash
-# Node.js CLI (requires Node ≥ 14)
-npm install -g wappalyzer
-
-# Alternative: webtech (lightweight CLI alternative)
-pip install webtech
-```
-
-> All three tools are entirely optional. ThreatScope shows a `● READY / ○ MISSING` status panel at the top of the Web Fingerprint menu and disables unavailable scan options automatically.
-
----
-
-## Nmap Prerequisites
-
-ThreatScope's Nmap module requires the **nmap binary** installed separately from `python-nmap`:
-
-```bash
-# Debian / Ubuntu / Kali (recommended)
-sudo apt install nmap
-
-# macOS
-brew install nmap
-
-# Windows — download installer from https://nmap.org/download.html
-# Tick "Add Nmap to PATH" during installation
-```
-
-Scans requiring root/sudo (OS detection, SYN stealth, ACK, UDP, aggressive):
-
-```bash
-sudo python main.py
-```
-
-Non-privileged scans (generic, version, specific ports, vuln scripts):
-
-```bash
-python main.py
-```
+> Use the **Dependency Manager** (`D` from the main menu) to check which tools are installed and auto-install missing Python packages.
 
 ---
 
 ## Installation
 
+### Linux / Kali / macOS
+
+```bash
+# 1. Clone the repository
+git clone <repository_url>
+cd threatscope
+
+# 2. Create and activate a virtual environment (recommended)
+python3 -m venv venv
+source venv/bin/activate
+
+# 3. Install Python dependencies
+pip install -r requirements.txt
+
+# 4. Configure API keys
+cp config.yaml.example config.yaml
+nano config.yaml        # fill in your keys — leave unused keys as ""
+
+# 5. (Optional) Install system tools for full functionality
+sudo apt install nmap theharvester libimage-exiftool-perl exploitdb sublist3r whatweb wafw00f
+# macOS:
+brew install nmap exiftool exploitdb whatweb
+pip install holehe sublist3r wafw00f theHarvester
+
+# 6. Run
+python main.py
+```
+
+For Nmap scans requiring root (SYN stealth, OS detection, UDP, ACK, aggressive):
+
+```bash
+sudo python main.py
+```
+
 ---
 
-### Windows — Detailed Setup Guide
+### Windows
 
 #### Step 1 — Install Python
 
-1. Open your browser and go to **https://www.python.org/downloads/windows/**
-2. Click **"Download Python 3.11.x"** (or the latest 3.x release shown)
-3. Run the downloaded `.exe` installer
-4. **IMPORTANT:** On the first screen, tick **"Add Python to PATH"** before clicking Install Now
-
-   ```
-   ☑  Add Python 3.x to PATH    ← must be checked
-   ```
-
-5. Click **"Install Now"** and wait for it to finish
-6. Verify the installation — open **Command Prompt** (`Win + R` → type `cmd` → Enter) and run:
-
-   ```cmd
-   python --version
-   ```
-
-   Expected output:
-   ```
-   Python 3.11.x
-   ```
-
----
+1. Download from **python.org/downloads/windows** (Python 3.9 or later)
+2. **Check "Add Python to PATH"** before clicking Install Now
+3. Verify: open Command Prompt and run `python --version`
 
 #### Step 2 — Install Git
 
-1. Go to **https://git-scm.com/download/win**
-2. Download and run the installer (keep all defaults)
-3. Verify:
+Download from **git-scm.com/download/win**, keep all defaults. Verify: `git --version`
 
-   ```cmd
-   git --version
-   ```
+#### Step 3 — Clone and install
 
-   Expected output:
-   ```
-   git version 2.x.x.windows.x
-   ```
-
-> If you don't want to use Git, you can also click **"Download ZIP"** on the GitHub repository page, extract it, and `cd` into the extracted folder instead.
-
----
-
-#### Step 3 — Open a Terminal
-
-Press `Win + R`, type `cmd`, press **Enter**.
-
-Or use **Windows Terminal** (recommended — install from the Microsoft Store for better colour support):
-- Press `Win`, search **"Windows Terminal"**, open it
-- It defaults to PowerShell — either is fine for the steps below
-
----
-
-#### Step 4 — Clone the Repository
+Open Command Prompt (`Win+R` → `cmd`):
 
 ```cmd
 git clone <repository_url>
 cd threatscope
-```
-
-Verify you are in the right folder:
-
-```cmd
-dir
-```
-
-You should see `main.py`, `config.py`, `requirements.txt`, and the `modules\` folder listed.
-
----
-
-#### Step 5 — Create a Virtual Environment
-
-A virtual environment keeps ThreatScope's dependencies isolated from your system Python.
-
-```cmd
 python -m venv venv
-```
-
-This creates a `venv\` folder in the project directory.
-
----
-
-#### Step 6 — Activate the Virtual Environment
-
-```cmd
 venv\Scripts\activate
-```
-
-Your prompt will change to show `(venv)` at the start:
-
-```
-(venv) C:\Users\YourName\threatscope>
-```
-
-> **PowerShell users:** If you get a `cannot be loaded because running scripts is disabled` error, run this once:
-> ```powershell
-> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-> ```
-> Then activate again:
-> ```powershell
-> venv\Scripts\Activate.ps1
-> ```
-
----
-
-#### Step 7 — Install Dependencies
-
-```cmd
 pip install -r requirements.txt
 ```
 
-This installs: `requests`, `rich`, `dnspython`, `python-whois`, `PyYAML`.
-
-Expected output ends with:
-```
-Successfully installed ... rich-xx.x.x requests-x.x.x dnspython-x.x.x ...
-```
-
-Verify the key packages installed correctly:
-
-```cmd
-pip list
-```
-
----
-
-#### Step 8 — Configure API Keys
-
-Copy the example config file:
+#### Step 4 — Configure API keys
 
 ```cmd
 copy config.yaml.example config.yaml
-```
-
-Open it in Notepad:
-
-```cmd
 notepad config.yaml
 ```
 
-Fill in your API keys between the quotes. Example:
-
-```yaml
-api_keys:
-  virustotal:           "YOUR_VIRUSTOTAL_KEY_HERE"
-  phishtank:            ""
-  google_safe_browsing: "YOUR_GSB_KEY_HERE"
-  urlscan:              "YOUR_URLSCAN_KEY_HERE"
-  apivoid:              ""
-  shodan:               "YOUR_SHODAN_KEY_HERE"
-  greynoise:            ""
-  alienvault_otx:       "YOUR_OTX_KEY_HERE"
-  ipinfo:               ""
-  abstractapi_ip:       ""
-  abuseipdb:            "YOUR_ABUSEIPDB_KEY_HERE"
-```
-
-Save and close Notepad (`Ctrl+S`, then close).
-
-> Keys left as `""` are simply skipped — ThreatScope will show them as `○ SKIPPED` on startup and still run all other checks normally.
-
----
-
-#### Step 9 — Run ThreatScope
+#### Step 5 — Run
 
 ```cmd
 python main.py
 ```
 
-You should see the ASCII banner, the API key status table, and the main menu.
-
----
-
-#### Returning to ThreatScope Later
-
-Every time you open a new terminal window, you must re-activate the virtual environment before running:
-
-```cmd
-cd C:\Users\YourName\threatscope
-venv\Scripts\activate
-python main.py
-```
-
----
-
-#### Troubleshooting (Windows)
+#### Windows Troubleshooting
 
 | Problem | Fix |
 |---|---|
 | `'python' is not recognized` | Re-run the Python installer and tick **"Add Python to PATH"** |
 | `'pip' is not recognized` | Run `python -m pip install -r requirements.txt` instead |
-| PowerShell script execution blocked | Run `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` |
-| `ModuleNotFoundError: No module named 'yaml'` | Make sure the venv is activated (`venv\Scripts\activate`) then re-run `pip install -r requirements.txt` |
-| Colour/box characters display as `?` or boxes | Install **Windows Terminal** from the Microsoft Store for full Unicode/colour support |
-| `SSL: CERTIFICATE_VERIFY_FAILED` | Run `pip install --upgrade certifi` |
-
----
-
-### macOS / Linux
-
-```bash
-# 1. Clone the repo
-git clone <repository_url>
-cd threatscope
-
-# 2. Create and activate a virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Configure API keys
-cp config.yaml.example config.yaml
-nano config.yaml          # or: open config.yaml (macOS), gedit config.yaml (Linux)
-
-# 5. Run
-python main.py
-```
+| PowerShell script execution blocked | `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` |
+| `ModuleNotFoundError: No module named 'yaml'` | Activate the venv first: `venv\Scripts\activate` |
+| Box/colour characters display as `?` | Install **Windows Terminal** from the Microsoft Store |
+| `SSL: CERTIFICATE_VERIFY_FAILED` | `pip install --upgrade certifi` |
 
 ---
 
 ## Configuration
 
-ThreatScope loads API keys from **`config.yaml`** (in the project root).
-If a key is missing from the file, it falls back to the corresponding
-**environment variable**. Missing keys are skipped gracefully — the tool
-still works with any subset of configured APIs.
+ThreatScope loads API keys from **`config.yaml`** (project root). Falls back to environment variables if a key is absent from the file. Keys left blank or missing produce a `○ SKIPPED` notice and never cause a crash.
 
-Edit `config.yaml`:
-
-```yaml
-api_keys:
-  virustotal:           "YOUR_KEY_HERE"
-  phishtank:            "YOUR_KEY_HERE"          # optional — works without key (rate-limited)
-  google_safe_browsing: "YOUR_KEY_HERE"
-  urlscan:              "YOUR_KEY_HERE"
-  apivoid:              "YOUR_KEY_HERE"
-  shodan:               "YOUR_KEY_HERE"
-  greynoise:            "YOUR_KEY_HERE"          # free community key is sufficient
-  alienvault_otx:       "YOUR_KEY_HERE"
-  ipinfo:               ""                       # works without key (50 k req/month free)
-  abstractapi_ip:       ""
-  abuseipdb:            "YOUR_KEY_HERE"
-```
-
-Alternatively, set environment variables:
-
-```bash
-export VT_API_KEY="..."
-export ABUSEIPDB_API_KEY="..."
-export GSB_API_KEY="..."
-# etc.
-```
-
-### Free-tier API registration links
-
-| Service | Free Tier Link |
-|---|---|
-| **VirusTotal** | https://www.virustotal.com/gui/sign-in |
-| **PhishTank** | https://www.phishtank.com/register.php |
-| **Google Safe Browsing** | https://developers.google.com/safe-browsing/v4/get-started |
-| **URLScan.io** | https://urlscan.io/user/signup |
-| **AbuseIPDB** | https://www.abuseipdb.com/register |
-| **GreyNoise** | https://www.greynoise.io/signup |
-| **AlienVault OTX** | https://otx.alienvault.com/ |
-| **Shodan** | https://account.shodan.io/register |
-| **IPInfo** | https://ipinfo.io/signup |
-| **APIVoid** | https://www.apivoid.com/register/ |
+The **Dependency Manager** (`D` → option 9) shows a live combined view of:
+- Which API keys are `● ACTIVE` (config.yaml or env var) vs `○ SKIPPED`
+- Which Python packages are installed
+- Which system binaries are found in PATH
 
 ---
 
@@ -472,35 +492,50 @@ export GSB_API_KEY="..."
 
 ```
 $ python main.py
-
-# Interactive menu — type the option number and press Enter
-
-[1]  → Enter: https://suspicious-site.ru/payload.exe
-      → Checks VirusTotal, PhishTank, Google Safe Browsing, APIVoid
-
-[3]  → Enter: 45.142.212.100
-      → Checks AbuseIPDB, VirusTotal, GreyNoise, Spamhaus DNSBL
-
-[6]  → Enter: example.com
-      → Returns A, MX, TXT, NS, CNAME, SOA records
-
-[9]  → Enter: 8.8.4.4          (auto-detected as IP)
-      → Runs all IP checks concurrently, prints verdict + offers JSON export
-
-[9]  → Enter: https://phishing.example.com/login
-      → Runs all URL checks + DNS/WHOIS on the domain concurrently
 ```
 
-### Verdict levels
+```
+[1]  Enter URL:   https://suspicious-site.ru/payload.exe
+     → VirusTotal · PhishTank · Google Safe Browsing · APIVoid
 
-| Verdict | Meaning |
-|---|---|
-| **CLEAN** | No sources flagged — low risk |
-| **LOW** | < 25 % of active sources flagged |
-| **MEDIUM** | 25–50 % of active sources flagged |
-| **HIGH** | 50–75 % of active sources flagged |
-| **CRITICAL** | > 75 % of active sources flagged — block immediately |
-| **UNKNOWN** | No APIs returned usable data |
+[3]  Enter IP:    45.142.212.100
+     → AbuseIPDB · VirusTotal · GreyNoise · Spamhaus DNSBL
+
+[6]  Enter domain: example.com
+     → A · MX · TXT · NS · CNAME · SOA records
+
+[9]  Enter IOC:   8.8.4.4                   ← auto-detected as IP
+     → All IP checks concurrently → verdict + JSON export
+
+[9]  Enter IOC:   https://phishing.example.com/login
+     → All URL checks + DNS/WHOIS concurrently
+
+[H]  Enter hash:  44d88612fea8a8f36de82e1278abb02f
+     → MalwareBazaar · VirusTotal · Hybrid Analysis · ThreatFox
+
+[S]  Option 7:    Full subdomain report for target.com
+     → crt.sh + HackerTarget + SecurityTrails + Sublist3r
+     → Merged, deduplicated → export to CSV/TXT/JSON
+
+[M]  Enter ID:    T1059.001
+     → Technique: Command and Scripting Interpreter: PowerShell
+
+[C]  Enter CVE:   CVE-2021-44228
+     → NVD CVSS · CISA KEV status · searchsploit · Vulners EPSS
+```
+
+---
+
+## Verdict Levels
+
+| Verdict | Colour | Meaning |
+|---|---|---|
+| `CLEAN` | Green | No sources flagged — low risk |
+| `LOW` | Cyan | < 25% of active sources flagged |
+| `MEDIUM` | Yellow | 25–50% of active sources flagged |
+| `HIGH` | Orange | 50–75% of active sources flagged |
+| `CRITICAL` | Red | > 75% of active sources flagged — block immediately |
+| `UNKNOWN` | Grey | No APIs returned usable data |
 
 ---
 
@@ -508,33 +543,83 @@ $ python main.py
 
 ```
 threatscope/
-├── main.py              # Entry point, interactive menu loop
-├── config.py            # Centralised API key management
-├── config.yaml          # API keys (gitignored — copy from config.yaml.example)
-├── config.yaml.example  # Safe template to commit
-├── requirements.txt
-├── reports/             # Auto-created; JSON exports stored here (gitignored)
-├── modules/
-│   ├── __init__.py
-│   ├── url_intel.py     # URL reputation checks
-│   ├── ip_intel.py      # IP reputation, geolocation, Shodan
-│   ├── dns_tools.py     # DNS lookup, reverse DNS, WHOIS, DNSBL
-│   └── utils.py         # Input validation, rich output, risk aggregation
-└── README.md
+├── main.py                    # Entry point — menu loop, IOC dispatching
+├── config.py                  # API key loading (config.yaml + env var fallback)
+├── config.yaml                # Your API keys  ← gitignored, copy from .example
+├── config.yaml.example        # Safe template to commit
+├── requirements.txt           # Python package dependencies
+├── reports/                   # Auto-created — JSON/CSV/TXT exports  ← gitignored
+│
+└── modules/
+    ├── __init__.py            # Graceful try/except imports for all optional modules
+    ├── utils.py               # Shared console, validators, Rich output helpers
+    │
+    ├── url_intel.py           # VirusTotal · PhishTank · GSB · URLScan · APIVoid
+    ├── ip_intel.py            # AbuseIPDB · VirusTotal · GreyNoise · IPInfo · OTX · Shodan
+    ├── dns_tools.py           # DNS lookup · Reverse DNS · WHOIS · DNSBL checks
+    │
+    ├── nmap_scanner.py        # 70+ nmap scan profiles + 100+ NSE vuln scripts
+    ├── nmap_menus.py          # Interactive Nmap menu
+    │
+    ├── hash_intel.py          # VirusTotal · MalwareBazaar · Hybrid Analysis · Malshare · ThreatFox
+    ├── hash_menus.py          # Interactive hash/file menu
+    │
+    ├── web_fingerprint.py     # WhatWeb · Wappalyzer · WafW00f
+    ├── web_fingerprint_menus.py
+    │
+    ├── osint_recon.py         # theHarvester · BuiltWith · Wayback · Exposed files · Metadata
+    ├── osint_menus.py
+    │
+    ├── email_intel.py         # HIBP · EmailRep · Holehe · SPF/DKIM/DMARC
+    │
+    ├── subdomain_recon.py     # crt.sh · HackerTarget · BGPView · RIPEstat · SecurityTrails · Sublist3r
+    ├── subdomain_menus.py     # Animated menu · export prompt · Sublist3r sub-menu
+    │
+    ├── cve_intel.py           # NVD · CISA KEV · searchsploit · Vulners · EPSS
+    ├── ssl_analyzer.py        # Certificate grab · Qualys SSL Labs
+    ├── threat_feeds.py        # URLhaus · ThreatFox · Feodo Tracker · SSL Blacklist
+    │
+    ├── mitre_attack.py        # ATT&CK STIX bundle (GitHub, cached) — no TAXII needed
+    │
+    ├── dependency_checker.py  # OS detection · binary/package/API key checks · install commands
+    └── dependency_menus.py    # Interactive dependency manager menu
 ```
 
 ---
 
-## Dependencies
+## Full Dependency Reference
 
-```
-requests>=2.31.0      # HTTP client for all API calls
-rich>=13.0.0          # Terminal formatting (tables, panels, progress bars)
-dnspython>=2.4.0      # DNS resolution (lookup + reverse + DNSBL)
-python-whois>=0.9.0   # WHOIS data retrieval
-PyYAML>=6.0           # config.yaml parsing
-```
+### Python Packages (`requirements.txt`)
 
-`ipaddress` is part of the Python standard library — no installation needed.
+| Package | Purpose | Required |
+|---|---|---|
+| `requests` | All HTTP API calls | Core |
+| `rich` | Terminal UI — tables, panels, spinners | Core |
+| `dnspython` | DNS resolution and DNSBL checks | Core |
+| `python-whois` | WHOIS data retrieval | Core |
+| `PyYAML` | `config.yaml` parsing | Core |
+| `python-nmap` | Nmap Python bindings | Nmap Scanner |
+| `python-wappalyzer` | Wappalyzer technology detection | Web Fingerprint / OSINT |
+| `PyMuPDF` | PDF metadata extraction | OSINT Recon |
+| `cryptography` | SSL certificate parsing | SSL Analyzer |
+| `sublist3r` | Multi-source subdomain enumeration | Subdomain Recon (optional) |
+| `reportlab` | PDF report generation | Report Generator (optional) |
+| `python-docx` | Word document generation | Report Generator (optional) |
+| `Jinja2` | HTML report templating | Report Generator (optional) |
+
+### System Binaries
+
+| Binary | Package | Module | Notes |
+|---|---|---|---|
+| `nmap` | nmap | Nmap Scanner | Root required for stealth/OS/UDP scans |
+| `theHarvester` | theharvester | OSINT Recon | `sudo apt install theharvester` or `pip install theHarvester` |
+| `exiftool` | libimage-exiftool-perl | OSINT Recon | File metadata extraction |
+| `searchsploit` | exploitdb | CVE Intelligence | Local ExploitDB database required |
+| `holehe` | holehe (pip) | Email Intelligence | Account enumeration across 100+ services |
+| `sublist3r` | sublist3r | Subdomain Recon | Binary mode preferred; falls back to `python -m sublist3r` |
+| `whatweb` | whatweb | Web Fingerprint | Ruby-based; `sudo apt install whatweb` |
+| `wafw00f` | wafw00f (pip) | Web Fingerprint | WAF detection |
 
 ---
+
+*Built for security analysts, red teamers, and threat hunters who live in the terminal.*
