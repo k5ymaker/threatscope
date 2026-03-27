@@ -35,6 +35,7 @@ APIs from a single interactive menu.
 | **[N] Nmap Scanner** | Generic port scan · 9 common scan types (SYN/SYN-stealth/UDP/ACK/OS/version/aggressive/discovery/file) · 105 NSE vuln scripts across 12 categories (SMB/Windows, HTTP/Web, SSL/TLS, FTP, SMTP, Databases, RDP/VNC, IPMI, IRC, Misc, CVE-DB) |
 | **[W] Web Fingerprint** | WhatWeb technology detection (aggression 1–4) · Wappalyzer passive analysis · WafW00f WAF detection with evasion hints · Full concurrent scan with merged technology report + WAF evasion notes |
 | **[H] Hash & File Intel** | VirusTotal (70+ AV engines) · MalwareBazaar (YARA + family tags) · Hybrid Analysis (sandbox detonation + MITRE ATT&CK) · Malshare · ThreatFox (C2 association) · File upload with pre-scan · Verdict summary banner |
+| **[O] OSINT Recon** | theHarvester (emails + subdomains from Google/Bing/crt.sh/OTX) · BuiltWith + Wappalyzer (tech stack + security headers) · Wayback Machine (domain history + snapshots) · Exposed files check (80+ sensitive paths) · Metadata extraction (exiftool/PyMuPDF — GPS, author, device data) |
 
 Additional capabilities:
 - **Auto-detects IOC type** (URL / IP / domain) for the Full IOC Report
@@ -66,6 +67,47 @@ api_keys:
 ```
 
 MalwareBazaar and ThreatFox require no registration — they appear as `● ACTIVE` automatically on every startup.
+
+---
+
+## OSINT Recon — Setup & Prerequisites
+
+### System tools (install separately)
+
+```bash
+# theHarvester — email and subdomain harvesting
+sudo apt install theharvester         # Kali / Debian / Ubuntu
+# or:
+pip install theHarvester
+
+# exiftool — file metadata extraction
+sudo apt install libimage-exiftool-perl   # Kali / Debian / Ubuntu
+brew install exiftool                      # macOS
+# Windows: https://exiftool.org/install.html
+```
+
+### Python packages
+
+```bash
+pip install python-wappalyzer PyMuPDF
+```
+
+### API keys
+
+| Service | Key Required | Free Registration |
+|---|---|---|
+| **BuiltWith** | ✅ Yes (free tier) | https://api.builtwith.com/signup |
+| **Wayback Machine** | ❌ No key needed | Public API |
+| **theHarvester** | ❌ No key needed | Open source binary |
+| **Wappalyzer** | ❌ No key needed | Python library — local only |
+| **exiftool** | ❌ No key needed | Open source binary |
+
+Add BuiltWith key to `config.yaml`:
+
+```yaml
+api_keys:
+  builtwith: "YOUR_KEY_HERE"
+```
 
 ---
 

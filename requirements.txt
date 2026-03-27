@@ -1,7 +1,28 @@
+# Core dependencies
 requests>=2.31.0
 rich>=13.0.0
 dnspython>=2.4.0
 python-whois>=0.9.0
 PyYAML>=6.0
 python-nmap>=0.7.1
+
+# Web Fingerprint module
 python-wappalyzer>=0.3.1
+
+# OSINT Recon module
+PyMuPDF>=1.23.0
+
+# SSL/TLS Analyzer module
+cryptography>=41.0.0
+
+# Subdomain Recon module (optional)
+sublist3r>=1.1
+
+# MITRE ATT&CK Mapper module
+# Uses GitHub STIX bundle + local cache — no TAXII server or attackcti needed
+# (requests is already a core dependency)
+
+# Optional export formats (reports)
+reportlab>=4.0.0
+python-docx>=1.0.0
+Jinja2>=3.1.0

@@ -1,14 +1,41 @@
+# ThreatScope — API Key Configuration
+# Copy this file to config.yaml and fill in your keys.
+# Keys not provided are simply skipped — ThreatScope degrades gracefully.
+
 api_keys:
-  virustotal: "YOUR_KEY_HERE"
-  phishtank: "YOUR_KEY_HERE"
-  google_safe_browsing: "YOUR_KEY_HERE"
-  urlscan: "YOUR_KEY_HERE"
-  apivoid: "YOUR_KEY_HERE"
-  shodan: "YOUR_KEY_HERE"
-  greynoise: "YOUR_KEY_HERE" # Free community key works
-  alienvault_otx: "YOUR_KEY_HERE"
-  ipinfo: "" # Works without a key (rate-limited)
-  abstractapi_ip: "YOUR_KEY_HERE"
-  abuseipdb: "YOUR_KEY_HERE"
-  hybrid_analysis: "YOUR_KEY_HERE" # https://www.hybrid-analysis.com/apikeys/info
-  malshare: "YOUR_KEY_HERE"         # https://malshare.com/register.php
+
+  # ── URL INTELLIGENCE ────────────────────────────────────────────────────────
+  virustotal: "YOUR_KEY_HERE"           # https://www.virustotal.com/gui/join-us
+  phishtank: "YOUR_KEY_HERE"            # https://www.phishtank.com/register.php
+  google_safe_browsing: "YOUR_KEY_HERE" # https://developers.google.com/safe-browsing
+  urlscan: "YOUR_KEY_HERE"              # https://urlscan.io/user/signup
+  apivoid: "YOUR_KEY_HERE"              # https://www.apivoid.com/register/
+
+  # ── IP INTELLIGENCE ─────────────────────────────────────────────────────────
+  shodan: "YOUR_KEY_HERE"               # https://account.shodan.io/register
+  greynoise: "YOUR_KEY_HERE"            # https://viz.greynoise.io/signup (free community key works)
+  alienvault_otx: "YOUR_KEY_HERE"       # https://otx.alienvault.com/accounts/signup
+  ipinfo: ""                            # https://ipinfo.io/signup (works rate-limited without key)
+  abstractapi_ip: "YOUR_KEY_HERE"       # https://app.abstractapi.com/users/signup
+  abuseipdb: "YOUR_KEY_HERE"            # https://www.abuseipdb.com/register
+
+  # ── HASH & FILE INTELLIGENCE ────────────────────────────────────────────────
+  hybrid_analysis: "YOUR_KEY_HERE"      # https://www.hybrid-analysis.com/apikeys/info
+  malshare: "YOUR_KEY_HERE"             # https://malshare.com/register.php
+
+  # ── OSINT / WEB FINGERPRINT ─────────────────────────────────────────────────
+  builtwith: "YOUR_KEY_HERE"            # https://api.builtwith.com/signup (free tier)
+
+  # ── EMAIL INTELLIGENCE ──────────────────────────────────────────────────────
+  hibp: "YOUR_KEY_HERE"                 # https://haveibeenpwned.com/API/Key (paid, ~$3.50/month)
+  emailrep: "YOUR_KEY_HERE"             # https://emailrep.io/key
+
+  # ── SUBDOMAIN & ASN RECON ───────────────────────────────────────────────────
+  securitytrails: "YOUR_KEY_HERE"       # https://securitytrails.com/corp/api (free tier available)
+
+  # ── CVE INTELLIGENCE ────────────────────────────────────────────────────────
+  nvd: "YOUR_KEY_HERE"                  # https://nvd.nist.gov/developers/request-an-api-key (free)
+  vulners: "YOUR_KEY_HERE"              # https://vulners.com/userinfo (free tier)
+
+  # ── GEO / PROXY INTELLIGENCE ────────────────────────────────────────────────
+  iphub: "YOUR_KEY_HERE"                # https://iphub.info/apiKey/newFree (free tier)

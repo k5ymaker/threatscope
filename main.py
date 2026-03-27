@@ -36,11 +36,46 @@ _ROOT = os.path.dirname(os.path.abspath(__file__))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from config import display_api_status  # noqa: E402
 from modules import dns_tools, ip_intel, url_intel, utils  # noqa: E402
 from modules.nmap_menus import show_nmap_menu  # noqa: E402
 from modules.web_fingerprint_menus import show_web_fingerprint_menu  # noqa: E402
 from modules.hash_menus import show_hash_menu  # noqa: E402
+from modules.osint_menus import show_osint_menu  # noqa: E402
+
+try:
+    from modules.dependency_menus import show_dependency_menu as _show_dependency_menu
+except ImportError:
+    _show_dependency_menu = None  # type: ignore[assignment]
+
+try:
+    from modules.email_intel import handle_email_menu as _handle_email_menu
+except ImportError:
+    _handle_email_menu = None  # type: ignore[assignment]
+
+try:
+    from modules.subdomain_menus import handle_subdomain_menu as _handle_subdomain_menu
+except ImportError:
+    _handle_subdomain_menu = None  # type: ignore[assignment]
+
+try:
+    from modules.cve_intel import handle_cve_menu as _handle_cve_menu
+except ImportError:
+    _handle_cve_menu = None  # type: ignore[assignment]
+
+try:
+    from modules.ssl_analyzer import handle_ssl_menu as _handle_ssl_menu
+except ImportError:
+    _handle_ssl_menu = None  # type: ignore[assignment]
+
+try:
+    from modules.threat_feeds import handle_feeds_menu as _handle_feeds_menu
+except ImportError:
+    _handle_feeds_menu = None  # type: ignore[assignment]
+
+try:
+    from modules.mitre_attack import handle_mitre_menu as _handle_mitre_menu
+except ImportError:
+    _handle_mitre_menu = None  # type: ignore[assignment]
 
 console = Console()
 
@@ -72,20 +107,35 @@ _AUTHOR  = "by  arunjitk"
 _VERSION = "v1.0"
 
 # Menu entries: (key, icon, label, sources)
+# Use key="─" for visual separator rows
 _MENU_ITEMS = [
-    ("1", "󰖂", "URL Reputation Check",   "VirusTotal · PhishTank · Google Safe Browsing · APIVoid"),
-    ("2", "󰐇", "URL Scan & Analysis",    "URLScan.io live browser scan"),
-    ("3", "󱒋", "IP Reputation",          "AbuseIPDB · VirusTotal · GreyNoise · DNSBL"),
-    ("4", "󰍉", "IP Geolocation & Info",  "IPInfo · AlienVault OTX"),
-    ("5", "󰣆", "Shodan Lookup",          "Open ports · Service banners · CVEs"),
-    ("6", "󰩠", "DNS Lookup",             "A · AAAA · MX · TXT · NS · CNAME · SOA"),
-    ("7", "󰌷", "Reverse DNS Lookup",     "PTR record resolution"),
-    ("8", "󰋼", "WHOIS Information",      "Registrar · Dates · Nameservers"),
-    ("9", "󰐊", "Full IOC Report",        "All checks concurrently + JSON export"),
-    ("N", "󰙵", "Nmap Scanner",           "Port scan · Vuln scripts · OS detection"),
-    ("W", "󰖟", "Web Fingerprint",        "WhatWeb · Wappalyzer · WafW00f"),
-    ("H", "󰡭", "Hash & File Intel",      "MalwareBazaar · VirusTotal · Hybrid Analysis · ThreatFox"),
-    ("0", "󰈆", "Exit",                   ""),
+    ("1", "󰖂", "URL Reputation Check",    "VirusTotal · PhishTank · Google Safe Browsing · APIVoid"),
+    ("2", "󰐇", "URL Scan & Analysis",     "URLScan.io live browser scan"),
+    ("─", "", "IP INTELLIGENCE", ""),
+    ("3", "󱒋", "IP Reputation",           "AbuseIPDB · VirusTotal · GreyNoise · DNSBL"),
+    ("4", "󰍉", "IP Geolocation & Info",   "IPInfo · AlienVault OTX"),
+    ("5", "󰣆", "Shodan Lookup",           "Open ports · Service banners · CVEs"),
+    ("─", "", "DNS & WHOIS", ""),
+    ("6", "󰩠", "DNS Lookup",              "A · AAAA · MX · TXT · NS · CNAME · SOA"),
+    ("7", "󰌷", "Reverse DNS Lookup",      "PTR record resolution"),
+    ("8", "󰋼", "WHOIS Information",       "Registrar · Dates · Nameservers"),
+    ("─", "", "REPORTS", ""),
+    ("9", "󰐊", "Full IOC Report",         "All checks concurrently + JSON export"),
+    ("─", "", "ADVANCED TOOLS", ""),
+    ("N", "󰙵", "Nmap Scanner",            "Port scan · Vuln scripts · OS detection"),
+    ("W", "󰖟", "Web Fingerprint",         "WhatWeb · Wappalyzer · WafW00f"),
+    ("H", "󰡭", "Hash & File Intel",       "MalwareBazaar · VirusTotal · Hybrid Analysis · ThreatFox"),
+    ("O", "󰐙", "OSINT Recon",            "Email harvest · Tech stack · Wayback · Exposed files · Metadata"),
+    ("─", "", "EXTENDED INTELLIGENCE", ""),
+    ("E", "󰀓", "Email Intelligence",      "HIBP · EmailRep · Holehe · SPF/DKIM/DMARC audit"),
+    ("S", "󰕒", "Subdomain & ASN Recon",  "crt.sh · HackerTarget · BGPView · RIPEstat · SecurityTrails"),
+    ("C", "󱑷", "CVE Intelligence",        "NVD NIST · CISA KEV · searchsploit · Vulners · EPSS"),
+    ("T", "󰢻", "SSL/TLS Analyzer",       "Cert info · Qualys SSL Labs grade · cipher analysis"),
+    ("F", "󰈊", "Live Threat Feeds",      "URLhaus · ThreatFox · Feodo Tracker · SSL Blacklist"),
+    ("M", "󰰑", "MITRE ATT&CK Mapper",   "Technique · Group · Software · Tactic explorer"),
+    ("─", "", "UTILITIES", ""),
+    ("D", "󰏗", "Dependency Manager",     "Check · install · verify all tools and API keys"),
+    ("0", "󰈆", "Exit",                    ""),
 ]
 
 # Colour scheme per menu key group
@@ -102,6 +152,14 @@ _KEY_STYLES = {
     "N": "bold bright_magenta",
     "W": "bold bright_blue",
     "H": "bold orange1",
+    "O": "bold bright_blue",
+    "E": "bold magenta",
+    "S": "bold bright_magenta",
+    "C": "bold red",
+    "T": "bold green",
+    "F": "bold bright_red",
+    "M": "bold bright_yellow",
+    "D": "bold bright_white",
     "0": "dim",
 }
 
@@ -166,17 +224,15 @@ def display_menu() -> None:
     table.add_column("MODULE",              no_wrap=True,  min_width=26)
     table.add_column("SOURCES / DESCRIPTION",              min_width=52, style="dim")
 
-    # Section dividers
-    _DIVIDERS = {"3": "IP INTELLIGENCE", "6": "DNS & WHOIS", "9": "REPORTS", "N": "ADVANCED TOOLS", "0": ""}
-
     for key, _icon, label, sources in _MENU_ITEMS:
-        # Insert section header row before certain keys
-        if key in _DIVIDERS and _DIVIDERS[key]:
+        # Separator row
+        if key == "─":
             table.add_row(
                 "",
-                f"[bold dim]─── {_DIVIDERS[key]} ───[/bold dim]",
+                f"[bold dim]─── {label} ───[/bold dim]",
                 "",
             )
+            continue
 
         key_style  = _KEY_STYLES.get(key, "bold white")
         key_cell   = f"[{key_style}] {key} [/{key_style}]"
@@ -549,6 +605,12 @@ def handle_full_ioc_report() -> None:
 # Main loop
 # ---------------------------------------------------------------------------
 
+def _unavailable(name: str) -> None:
+    """Shown when an optional module could not be imported."""
+    console.print(f"\n[bold red]Module '{name}' is unavailable.[/bold red]")
+    console.print("[dim]Check that all dependencies are installed: run option [D] Dependency Manager.[/dim]\n")
+
+
 _HANDLERS = {
     "1": handle_url_reputation,
     "2": handle_url_scan,
@@ -562,19 +624,55 @@ _HANDLERS = {
     "n": lambda: show_nmap_menu(),
     "w": lambda: show_web_fingerprint_menu(),
     "h": lambda: show_hash_menu(),
+    "o": lambda: show_osint_menu(),
+    "e": lambda: _handle_email_menu() if _handle_email_menu else _unavailable("Email Intelligence"),
+    "s": lambda: _handle_subdomain_menu() if _handle_subdomain_menu else _unavailable("Subdomain & ASN Recon"),
+    "c": lambda: _handle_cve_menu() if _handle_cve_menu else _unavailable("CVE Intelligence"),
+    "t": lambda: _handle_ssl_menu() if _handle_ssl_menu else _unavailable("SSL/TLS Analyzer"),
+    "f": lambda: _handle_feeds_menu() if _handle_feeds_menu else _unavailable("Live Threat Feeds"),
+    "m": lambda: _handle_mitre_menu() if _handle_mitre_menu else _unavailable("MITRE ATT&CK Mapper"),
+    "d": lambda: _show_dependency_menu() if _show_dependency_menu else _unavailable("Dependency Manager"),
 }
 
 
 def main() -> None:
-    """Application entry point — display banner, show API status, then loop."""
+    """Application entry point — display banner, then loop."""
     print_banner()
-    display_api_status()
+
+    # Quick dependency health hint
+    if _show_dependency_menu is not None:
+        try:
+            from modules.dependency_checker import run_all_checks
+            _dep_summary = run_all_checks()
+            _missing_req = len(_dep_summary.get("missing_required", []))
+            _missing_opt = len(_dep_summary.get("missing_optional", []))
+            _missing_key = len(_dep_summary.get("missing_api_keys", []))
+            if _missing_req > 0:
+                console.print(
+                    f"[bold red]⚠  {_missing_req} required dependencies missing.[/bold red] "
+                    f"[dim]Run [D] Dependency Manager to install.[/dim]"
+                )
+            elif _missing_opt > 0 or _missing_key > 0:
+                console.print(
+                    f"[yellow]ℹ  {_missing_opt} optional tools · {_missing_key} API keys not configured.[/yellow] "
+                    f"[dim]Run [D] for details.[/dim]"
+                )
+            else:
+                console.print("[bold green]✓  All dependencies satisfied.[/bold green]")
+            console.print()
+        except Exception:
+            pass
 
     while True:
         display_menu()
         choice = Prompt.ask(
             "[bold yellow]Select option[/bold yellow]",
-            choices=[str(i) for i in range(10)] + ["n", "N", "w", "W", "h", "H"],
+            choices=(
+                [str(i) for i in range(10)]
+                + ["n", "N", "w", "W", "h", "H", "o", "O",
+                   "e", "E", "s", "S", "c", "C", "t", "T",
+                   "f", "F", "m", "M", "d", "D"]
+            ),
             show_choices=False,
         )
         choice = choice.lower()
