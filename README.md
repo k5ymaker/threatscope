@@ -41,8 +41,11 @@
   - [Windows](#windows)
 - [Configuration](#configuration)
 - [Usage Examples](#usage-examples)
+  - [Interactive Mode](#interactive-mode)
+  - [Non-Interactive CLI Mode](#non-interactive-cli-mode)
 - [Verdict Levels](#verdict-levels)
 - [Project Structure](#project-structure)
+- [Module Function Reference](#module-function-reference)
 - [Full Dependency Reference](#full-dependency-reference)
 
 ---
@@ -490,6 +493,8 @@ The **Dependency Manager** (`D` → option 9) shows a live combined view of:
 
 ## Usage Examples
 
+### Interactive Mode
+
 ```
 $ python main.py
 ```
@@ -522,6 +527,50 @@ $ python main.py
 
 [C]  Enter CVE:   CVE-2021-44228
      → NVD CVSS · CISA KEV status · searchsploit · Vulners EPSS
+```
+
+### Non-Interactive CLI Mode
+
+ThreatScope supports command-line arguments for scripting and automation:
+
+```bash
+# URL reputation check
+python main.py --url "https://example.com"
+
+# IP reputation check
+python main.py --ip "8.8.8.8"
+
+# DNS lookup and WHOIS
+python main.py --domain "example.com"
+
+# File hash lookup
+python main.py --hash "44d88612fea8a8f36de82e1278abb02f"
+
+# CVE lookup
+python main.py --cve "CVE-2021-44228"
+
+# Full IOC report (all checks)
+python main.py --report "example.com"
+
+# Subdomain enumeration
+python main.py --subdomains "example.com"
+
+# Email intelligence
+python main.py --email "test@example.com"
+
+# SSL certificate analysis
+python main.py --ssl "example.com"
+
+# Quiet mode (suppress banner)
+python main.py --domain "example.com" --quiet
+
+# Export to file
+python main.py --report "example.com" --output "reports/myreport.json"
+```
+
+For full CLI help:
+```bash
+python main.py --help
 ```
 
 ---
@@ -584,6 +633,102 @@ threatscope/
     ├── dependency_checker.py  # OS detection · binary/package/API key checks · install commands
     └── dependency_menus.py    # Interactive dependency manager menu
 ```
+
+---
+
+## Module Function Reference
+
+This section documents the public function names in each module for programmatic use:
+
+### URL Intelligence (`modules/url_intel.py`)
+
+| Function | Description |
+|---|---|
+| `check_virustotal_url(url)` | Check URL against VirusTotal |
+| `check_phishtank(url)` | Check URL against PhishTank |
+| `check_google_safe_browsing(url)` | Check URL against Google Safe Browsing |
+| `check_apivoid_url(url)` | Check URL against APIVoid |
+| `scan_urlscan(url)` | Submit URL to URLScan.io |
+
+### IP Intelligence (`modules/ip_intel.py`)
+
+| Function | Description |
+|---|---|
+| `check_virustotal_ip(ip)` | Check IP against VirusTotal |
+| `check_abuseipdb(ip)` | Check IP against AbuseIPDB |
+| `check_greynoise_ip(ip)` | Check IP against GreyNoise |
+| `get_ipinfo(ip)` | Get IP geolocation from IPInfo |
+| `check_alienvault_ip(ip)` | Get IP info from AlienVault OTX |
+| `lookup_shodan_ip(ip)` | Lookup IP in Shodan |
+
+### DNS & WHOIS (`modules/dns_tools.py`)
+
+| Function | Description |
+|---|---|
+| `dns_lookup(domain)` | Perform DNS lookup (A, AAAA, MX, NS, TXT, CNAME, SOA) |
+| `reverse_dns_lookup(ip)` | Perform reverse DNS lookup |
+| `get_whois(domain)` | Get WHOIS information |
+| `spamhaus_dnsbl_check(ip)` | Check IP against Spamhaus DNSBL |
+
+### Hash Intelligence (`modules/hash_intel.py`)
+
+| Function | Description |
+|---|---|
+| `check_virustotal_hash(hash)` | Check hash against VirusTotal |
+| `check_malwarebazaar(hash)` | Check hash against MalwareBazaar |
+| `check_hybrid_analysis(hash)` | Check hash against Hybrid Analysis |
+| `check_threatfox(hash)` | Check hash against ThreatFox |
+| `check_malshare(hash)` | Check hash against Malshare |
+
+### CVE Intelligence (`modules/cve_intel.py`)
+
+| Function | Description |
+|---|---|
+| `lookup_nvd(cve_id)` | Lookup CVE in NVD NIST |
+| `check_cisa_kev(cve_id)` | Check if CVE is in CISA KEV |
+| `search_exploitdb(cve_id)` | Search ExploitDB for exploits |
+| `search_vulners(cve_id)` | Search Vulners for CVE details |
+
+### Threat Feeds (`modules/threat_feeds.py`)
+
+| Function | Description |
+|---|---|
+| `check_urlhaus(ioc)` | Check URL/domain/IP against URLhaus |
+| `check_threatfox_ioc(ioc)` | Check IOC against ThreatFox |
+| `check_feodo_tracker(ip)` | Check IP against Feodo Tracker |
+| `check_ssl_blacklist(fingerprint)` | Check SSL fingerprint against SSLBL |
+
+### Subdomain Recon (`modules/subdomain_recon.py`)
+
+| Function | Description |
+|---|---|
+| `enumerate_subdomains_crtsh(domain)` | Enumerate subdomains via crt.sh |
+| `enumerate_subdomains_hackertarget(domain)` | Enumerate subdomains via HackerTarget |
+| `asn_lookup_bgpview(ip_or_asn)` | Lookup ASN via BGPView |
+| `securitytrails_lookup(domain)` | Lookup subdomains via SecurityTrails |
+
+### SSL Analyzer (`modules/ssl_analyzer.py`)
+
+| Function | Description |
+|---|---|
+| `grab_certificate(hostname)` | Grab and parse SSL certificate |
+| `ssllabs_scan(hostname)` | Run Qualys SSL Labs scan |
+
+### Email Intelligence (`modules/email_intel.py`)
+
+| Function | Description |
+|---|---|
+| `check_hibp(email)` | Check email against Have I Been Pwned |
+| `check_emailrep(email)` | Check email reputation via EmailRep |
+
+### MITRE ATT&CK (`modules/mitre_attack.py`)
+
+| Function | Description |
+|---|---|
+| `lookup_technique(technique_id)` | Lookup ATT&CK technique |
+| `lookup_group(group_name)` | Lookup APT group |
+| `lookup_software(software_name)` | Lookup malware/tool |
+| `map_ioc_to_attack(ioc)` | Map IOC to ATT&CK techniques |
 
 ---
 

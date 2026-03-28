@@ -39,3 +39,7 @@ api_keys:
 
   # ── GEO / PROXY INTELLIGENCE ────────────────────────────────────────────────
   iphub: "YOUR_KEY_HERE"                # https://iphub.info/apiKey/newFree (free tier)
+
+  # ── WEB APP PENTESTING ──────────────────────────────────────────────────────
+  wpscan: ""                            # https://wpscan.com/api (free tier: 25 req/day)
+  nuclei_templates: ""                  # Optional path override for nuclei templates

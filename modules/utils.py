@@ -150,15 +150,17 @@ def print_result_table(data: dict | None, title: str = "Result") -> None:
     table.add_column("Value", min_width=44)
 
     for key, value in display_data.items():
-        if value is None or value == "":
+        if value is None or value == "" or value == []:
             table.add_row(str(key), "[dim]N/A[/dim]")
             continue
 
-        colour = _risk_colour(value)
-        display = str(value)
-        if len(display) > 120:
-            display = display[:117] + "..."
+        # Lists → one line per item so every entry is visible
+        if isinstance(value, list):
+            display = "\n".join(str(item) for item in value) if value else "None"
+        else:
+            display = str(value)
 
+        colour = _risk_colour(display)
         table.add_row(str(key), f"[{colour}]{display}[/{colour}]")
 
     console.print(table)

@@ -8,10 +8,19 @@ report with optional JSON export.
 
 Run from the project root:
     python main.py
+
+Non-interactive mode:
+    python main.py --url https://example.com
+    python main.py --ip 8.8.8.8
+    python main.py --domain example.com
+    python main.py --hash 44d88612fea8a8f36de82e1278abb02f
+    python main.py --cve CVE-2021-44228
+    python main.py --report example.com
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
@@ -77,6 +86,13 @@ try:
 except ImportError:
     _handle_mitre_menu = None  # type: ignore[assignment]
 
+try:
+    from modules.webapp_pentest_menus import (
+        handle_webapp_pentest as _handle_webapp_pentest,
+    )
+except ImportError:
+    _handle_webapp_pentest = None  # type: ignore[assignment]
+
 console = Console()
 
 
@@ -103,39 +119,80 @@ _BANNER_SIMPLE = r"""
 """
 
 _TAGLINE = "Terminal-based Threat Intelligence  ·  Investigate URLs, IPs & Domains"
-_AUTHOR  = "by  arunjitk"
+_AUTHOR = "by  arunjitk"
 _VERSION = "v1.0"
 
 # Menu entries: (key, icon, label, sources)
 # Use key="─" for visual separator rows
 _MENU_ITEMS = [
-    ("1", "󰖂", "URL Reputation Check",    "VirusTotal · PhishTank · Google Safe Browsing · APIVoid"),
-    ("2", "󰐇", "URL Scan & Analysis",     "URLScan.io live browser scan"),
+    (
+        "1",
+        "󰖂",
+        "URL Reputation Check",
+        "VirusTotal · PhishTank · Google Safe Browsing · APIVoid",
+    ),
+    ("2", "󰐇", "URL Scan & Analysis", "URLScan.io live browser scan"),
     ("─", "", "IP INTELLIGENCE", ""),
-    ("3", "󱒋", "IP Reputation",           "AbuseIPDB · VirusTotal · GreyNoise · DNSBL"),
-    ("4", "󰍉", "IP Geolocation & Info",   "IPInfo · AlienVault OTX"),
-    ("5", "󰣆", "Shodan Lookup",           "Open ports · Service banners · CVEs"),
+    ("3", "󱒋", "IP Reputation", "AbuseIPDB · VirusTotal · GreyNoise · DNSBL"),
+    ("4", "󰍉", "IP Geolocation & Info", "IPInfo · AlienVault OTX"),
+    ("5", "󰣆", "Shodan Lookup", "Open ports · Service banners · CVEs"),
     ("─", "", "DNS & WHOIS", ""),
-    ("6", "󰩠", "DNS Lookup",              "A · AAAA · MX · TXT · NS · CNAME · SOA"),
-    ("7", "󰌷", "Reverse DNS Lookup",      "PTR record resolution"),
-    ("8", "󰋼", "WHOIS Information",       "Registrar · Dates · Nameservers"),
+    ("6", "󰩠", "DNS Lookup", "A · AAAA · MX · TXT · NS · CNAME · SOA"),
+    ("7", "󰌷", "Reverse DNS Lookup", "PTR record resolution"),
+    ("8", "󰋼", "WHOIS Information", "Registrar · Dates · Nameservers"),
     ("─", "", "REPORTS", ""),
-    ("9", "󰐊", "Full IOC Report",         "All checks concurrently + JSON export"),
+    ("9", "󰐊", "Full IOC Report", "All checks concurrently + JSON export"),
     ("─", "", "ADVANCED TOOLS", ""),
-    ("N", "󰙵", "Nmap Scanner",            "Port scan · Vuln scripts · OS detection"),
-    ("W", "󰖟", "Web Fingerprint",         "WhatWeb · Wappalyzer · WafW00f"),
-    ("H", "󰡭", "Hash & File Intel",       "MalwareBazaar · VirusTotal · Hybrid Analysis · ThreatFox"),
-    ("O", "󰐙", "OSINT Recon",            "Email harvest · Tech stack · Wayback · Exposed files · Metadata"),
+    ("N", "󰙵", "Nmap Scanner", "Port scan · Vuln scripts · OS detection"),
+    ("W", "󰖟", "Web Fingerprint", "WhatWeb · Wappalyzer · WafW00f"),
+    (
+        "H",
+        "󰡭",
+        "Hash & File Intel",
+        "MalwareBazaar · VirusTotal · Hybrid Analysis · ThreatFox",
+    ),
+    (
+        "O",
+        "󰐙",
+        "OSINT Recon",
+        "Email harvest · Tech stack · Wayback · Exposed files · Metadata",
+    ),
+    (
+        "P",
+        "󰒃",
+        "Web App Pentest",
+        "Headers · CORS · CSP · Cookies · Path scan · Nikto · Nuclei · OWASP Top 10",
+    ),
     ("─", "", "EXTENDED INTELLIGENCE", ""),
-    ("E", "󰀓", "Email Intelligence",      "HIBP · EmailRep · Holehe · SPF/DKIM/DMARC audit"),
-    ("S", "󰕒", "Subdomain & ASN Recon",  "crt.sh · HackerTarget · BGPView · RIPEstat · SecurityTrails"),
-    ("C", "󱑷", "CVE Intelligence",        "NVD NIST · CISA KEV · searchsploit · Vulners · EPSS"),
-    ("T", "󰢻", "SSL/TLS Analyzer",       "Cert info · Qualys SSL Labs grade · cipher analysis"),
-    ("F", "󰈊", "Live Threat Feeds",      "URLhaus · ThreatFox · Feodo Tracker · SSL Blacklist"),
-    ("M", "󰰑", "MITRE ATT&CK Mapper",   "Technique · Group · Software · Tactic explorer"),
+    ("E", "󰀓", "Email Intelligence", "HIBP · EmailRep · Holehe · SPF/DKIM/DMARC audit"),
+    (
+        "S",
+        "󰕒",
+        "Subdomain & ASN Recon",
+        "crt.sh · HackerTarget · BGPView · RIPEstat · SecurityTrails",
+    ),
+    (
+        "C",
+        "󱑷",
+        "CVE Intelligence",
+        "NVD NIST · CISA KEV · searchsploit · Vulners · EPSS",
+    ),
+    (
+        "T",
+        "󰢻",
+        "SSL/TLS Analyzer",
+        "Cert info · Qualys SSL Labs grade · cipher analysis",
+    ),
+    (
+        "F",
+        "󰈊",
+        "Live Threat Feeds",
+        "URLhaus · ThreatFox · Feodo Tracker · SSL Blacklist",
+    ),
+    ("M", "󰰑", "MITRE ATT&CK Mapper", "Technique · Group · Software · Tactic explorer"),
     ("─", "", "UTILITIES", ""),
-    ("D", "󰏗", "Dependency Manager",     "Check · install · verify all tools and API keys"),
-    ("0", "󰈆", "Exit",                    ""),
+    ("D", "󰏗", "Dependency Manager", "Check · install · verify all tools and API keys"),
+    ("0", "󰈆", "Exit", ""),
 ]
 
 # Colour scheme per menu key group
@@ -153,6 +210,7 @@ _KEY_STYLES = {
     "W": "bold bright_blue",
     "H": "bold orange1",
     "O": "bold bright_blue",
+    "P": "bold red",
     "E": "bold magenta",
     "S": "bold bright_magenta",
     "C": "bold red",
@@ -209,20 +267,26 @@ def print_banner() -> None:
 
 def display_menu() -> None:
     """Render the main interactive menu as a styled rich Table."""
+    console_width = console.size.width if hasattr(console, "size") else 120
+    menu_width = max(console_width - 4, 90)
+
     table = Table(
         box=box.SIMPLE_HEAD,
         show_header=True,
         header_style="bold bright_white on grey23",
         border_style="bright_cyan",
         title_style="bold bright_white",
-        expand=False,
+        expand=True,
         padding=(0, 2),
         show_edge=True,
         show_lines=False,
+        min_width=menu_width,
     )
-    table.add_column("  KEY", style="bold", no_wrap=True,  min_width=7,  justify="center")
-    table.add_column("MODULE",              no_wrap=True,  min_width=26)
-    table.add_column("SOURCES / DESCRIPTION",              min_width=52, style="dim")
+    table.add_column("  KEY", style="bold", no_wrap=True, min_width=6, justify="center")
+    table.add_column("MODULE", no_wrap=False, min_width=24)
+    table.add_column(
+        "SOURCES / DESCRIPTION", no_wrap=False, min_width=menu_width - 35, style="dim"
+    )
 
     for key, _icon, label, sources in _MENU_ITEMS:
         # Separator row
@@ -234,17 +298,17 @@ def display_menu() -> None:
             )
             continue
 
-        key_style  = _KEY_STYLES.get(key, "bold white")
-        key_cell   = f"[{key_style}] {key} [/{key_style}]"
+        key_style = _KEY_STYLES.get(key, "bold white")
+        key_cell = f"[{key_style}] {key} [/{key_style}]"
 
         if key == "0":
-            label_cell   = f"[dim]{label}[/dim]"
+            label_cell = f"[dim]{label}[/dim]"
             sources_cell = ""
         elif key == "9":
-            label_cell   = f"[bold bright_red]{label}[/bold bright_red]"
+            label_cell = f"[bold bright_red]{label}[/bold bright_red]"
             sources_cell = f"[dim]{sources}[/dim]"
         else:
-            label_cell   = f"[bold white]{label}[/bold white]"
+            label_cell = f"[bold white]{label}[/bold white]"
             sources_cell = f"[dim]{sources}[/dim]"
 
         table.add_row(key_cell, label_cell, sources_cell)
@@ -257,6 +321,7 @@ def display_menu() -> None:
             border_style="bright_cyan",
             box=box.DOUBLE_EDGE,
             padding=(0, 1),
+            width=menu_width + 2,
         )
     )
     console.print()
@@ -266,13 +331,18 @@ def display_menu() -> None:
 # Input helpers
 # ---------------------------------------------------------------------------
 
+
 def prompt_url() -> str:
     """Prompt for and validate a URL, looping until a valid one is entered."""
     while True:
-        val = Prompt.ask("[bold]Enter URL[/bold] [dim](e.g. https://example.com)[/dim]").strip()
+        val = Prompt.ask(
+            "[bold]Enter URL[/bold] [dim](e.g. https://example.com)[/dim]"
+        ).strip()
         if utils.validate_url(val):
             return val
-        console.print("[bold red]  Invalid URL. Must start with http:// or https://[/bold red]")
+        console.print(
+            "[bold red]  Invalid URL. Must start with http:// or https://[/bold red]"
+        )
 
 
 def prompt_ip() -> str:
@@ -287,7 +357,9 @@ def prompt_ip() -> str:
 def prompt_domain() -> str:
     """Prompt for and validate a domain name, looping until valid."""
     while True:
-        val = Prompt.ask("[bold]Enter domain[/bold] [dim](e.g. example.com)[/dim]").strip()
+        val = Prompt.ask(
+            "[bold]Enter domain[/bold] [dim](e.g. example.com)[/dim]"
+        ).strip()
         if utils.validate_domain(val):
             return val
         console.print("[bold red]  Invalid domain format.[/bold red]")
@@ -303,6 +375,7 @@ def prompt_ioc() -> str:
 # ---------------------------------------------------------------------------
 # Per-option handlers
 # ---------------------------------------------------------------------------
+
 
 def handle_url_reputation() -> None:
     """Option 1 — URL reputation check across VirusTotal, PhishTank, GSB, APIVoid."""
@@ -403,6 +476,7 @@ def handle_whois() -> None:
 # Option 9 — Full IOC Report
 # ---------------------------------------------------------------------------
 
+
 def _build_task_list(ioc: str, ioc_type: str) -> list[tuple]:
     """
     Return a list of (callable, arg) pairs appropriate for the detected IOC type.
@@ -412,34 +486,34 @@ def _build_task_list(ioc: str, ioc_type: str) -> list[tuple]:
     if ioc_type == "url":
         domain = urlparse(ioc).netloc or ioc
         tasks = [
-            (url_intel.check_virustotal_url,       ioc),
-            (url_intel.check_phishtank,             ioc),
-            (url_intel.check_google_safe_browsing,  ioc),
-            (url_intel.scan_urlscan,                ioc),
-            (url_intel.check_apivoid_url,           ioc),
-            (dns_tools.dns_lookup,                  domain),
-            (dns_tools.get_whois,                   domain),
+            (url_intel.check_virustotal_url, ioc),
+            (url_intel.check_phishtank, ioc),
+            (url_intel.check_google_safe_browsing, ioc),
+            (url_intel.scan_urlscan, ioc),
+            (url_intel.check_apivoid_url, ioc),
+            (dns_tools.dns_lookup, domain),
+            (dns_tools.get_whois, domain),
         ]
 
     elif ioc_type == "ip":
         tasks = [
-            (ip_intel.check_virustotal_ip,   ioc),
-            (ip_intel.check_abuseipdb,       ioc),
-            (ip_intel.check_greynoise_ip,    ioc),
-            (ip_intel.check_alienvault_ip,   ioc),
-            (ip_intel.lookup_shodan_ip,      ioc),
-            (ip_intel.get_ipinfo,            ioc),
-            (dns_tools.reverse_dns_lookup,   ioc),
+            (ip_intel.check_virustotal_ip, ioc),
+            (ip_intel.check_abuseipdb, ioc),
+            (ip_intel.check_greynoise_ip, ioc),
+            (ip_intel.check_alienvault_ip, ioc),
+            (ip_intel.lookup_shodan_ip, ioc),
+            (ip_intel.get_ipinfo, ioc),
+            (dns_tools.reverse_dns_lookup, ioc),
             (dns_tools.spamhaus_dnsbl_check, ioc),
         ]
 
     elif ioc_type == "domain":
         tasks = [
-            (dns_tools.dns_lookup,                  ioc),
-            (dns_tools.get_whois,                   ioc),
-            (url_intel.check_virustotal_url,         f"http://{ioc}"),
-            (url_intel.check_phishtank,              f"http://{ioc}"),
-            (url_intel.check_google_safe_browsing,   f"http://{ioc}"),
+            (dns_tools.dns_lookup, ioc),
+            (dns_tools.get_whois, ioc),
+            (url_intel.check_virustotal_url, f"http://{ioc}"),
+            (url_intel.check_phishtank, f"http://{ioc}"),
+            (url_intel.check_google_safe_browsing, f"http://{ioc}"),
         ]
 
     return tasks
@@ -448,7 +522,7 @@ def _build_task_list(ioc: str, ioc_type: str) -> list[tuple]:
 def _print_verdict_banner(agg: dict) -> None:
     """Print a full-width verdict banner with colour-coded risk level."""
     verdict = agg["verdict"]
-    style   = utils.verdict_style(verdict)
+    style = utils.verdict_style(verdict)
 
     lines = [
         f"[{style}]  VERDICT: {verdict}  [/{style}]",
@@ -463,12 +537,12 @@ def _print_verdict_banner(agg: dict) -> None:
 
     # Recommended next steps
     advice_map = {
-        "CLEAN":    "[green]IOC appears clean. Continue monitoring as threat landscapes change.[/green]",
-        "LOW":      "[yellow]Low risk detected. Consider passive monitoring and review flagged sources.[/yellow]",
-        "MEDIUM":   "[yellow]Medium risk. Investigate flagged sources and consider blocking as a precaution.[/yellow]",
-        "HIGH":     "[red]High risk. Strongly recommend blocking and immediate investigation.[/red]",
+        "CLEAN": "[green]IOC appears clean. Continue monitoring as threat landscapes change.[/green]",
+        "LOW": "[yellow]Low risk detected. Consider passive monitoring and review flagged sources.[/yellow]",
+        "MEDIUM": "[yellow]Medium risk. Investigate flagged sources and consider blocking as a precaution.[/yellow]",
+        "HIGH": "[red]High risk. Strongly recommend blocking and immediate investigation.[/red]",
         "CRITICAL": "[bold red]CRITICAL. Block immediately. Escalate to incident response team.[/bold red]",
-        "UNKNOWN":  "[dim]Could not determine risk — no APIs returned usable data. Check your API keys.[/dim]",
+        "UNKNOWN": "[dim]Could not determine risk — no APIs returned usable data. Check your API keys.[/dim]",
     }
     lines += ["", "Recommended Action:", advice_map.get(verdict, "")]
 
@@ -476,7 +550,9 @@ def _print_verdict_banner(agg: dict) -> None:
         Panel(
             "\n".join(lines),
             title="[bold white]THREATSCOPE — FULL IOC REPORT[/bold white]",
-            border_style=style.split()[-1] if "red" in style else ("yellow" if "yellow" in style else "green"),
+            border_style=style.split()[-1]
+            if "red" in style
+            else ("yellow" if "yellow" in style else "green"),
             box=box.DOUBLE_EDGE,
             padding=(1, 4),
         )
@@ -488,15 +564,15 @@ def _export_report(ioc: str, results: list[dict], agg: dict) -> None:
     reports_dir = os.path.join(_ROOT, "reports")
     os.makedirs(reports_dir, exist_ok=True)
 
-    safe_ioc  = ioc.replace("://", "_").replace("/", "_").replace(".", "_")[:60]
+    safe_ioc = ioc.replace("://", "_").replace("/", "_").replace(".", "_")[:60]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename  = os.path.join(reports_dir, f"{timestamp}_{safe_ioc}.json")
+    filename = os.path.join(reports_dir, f"{timestamp}_{safe_ioc}.json")
 
     export_data = {
         "generated_at": datetime.now().isoformat(),
-        "ioc":          ioc,
-        "verdict":      agg,
-        "results":      results,
+        "ioc": ioc,
+        "verdict": agg,
+        "results": results,
     }
 
     # Make details JSON-serialisable (convert any non-serialisable types to str)
@@ -525,7 +601,7 @@ def handle_full_ioc_report() -> None:
     a ThreadPoolExecutor, aggregates results, and prints a final verdict banner.
     Offers optional JSON export.
     """
-    ioc      = prompt_ioc()
+    ioc = prompt_ioc()
     ioc_type = utils.detect_input_type(ioc)
 
     if ioc_type == "unknown":
@@ -555,8 +631,7 @@ def handle_full_ioc_report() -> None:
 
         with ThreadPoolExecutor(max_workers=6) as executor:
             future_map = {
-                executor.submit(fn, arg): (fn.__name__, arg)
-                for fn, arg in task_list
+                executor.submit(fn, arg): (fn.__name__, arg) for fn, arg in task_list
             }
 
             for future in as_completed(future_map):
@@ -566,14 +641,16 @@ def handle_full_ioc_report() -> None:
                     if result:
                         all_results.append(result)
                 except Exception as exc:  # noqa: BLE001
-                    all_results.append({
-                        "source":  fn_name,
-                        "skipped": False,
-                        "error":   True,
-                        "flagged": False,
-                        "risk_score": None,
-                        "details": {"Error": str(exc)},
-                    })
+                    all_results.append(
+                        {
+                            "source": fn_name,
+                            "skipped": False,
+                            "error": True,
+                            "flagged": False,
+                            "risk_score": None,
+                            "details": {"Error": str(exc)},
+                        }
+                    )
                 progress.update(prog_task, advance=1)
 
     # Print individual results
@@ -605,10 +682,13 @@ def handle_full_ioc_report() -> None:
 # Main loop
 # ---------------------------------------------------------------------------
 
+
 def _unavailable(name: str) -> None:
     """Shown when an optional module could not be imported."""
     console.print(f"\n[bold red]Module '{name}' is unavailable.[/bold red]")
-    console.print("[dim]Check that all dependencies are installed: run option [D] Dependency Manager.[/dim]\n")
+    console.print(
+        "[dim]Check that all dependencies are installed: run option [D] Dependency Manager.[/dim]\n"
+    )
 
 
 _HANDLERS = {
@@ -625,76 +705,319 @@ _HANDLERS = {
     "w": lambda: show_web_fingerprint_menu(),
     "h": lambda: show_hash_menu(),
     "o": lambda: show_osint_menu(),
-    "e": lambda: _handle_email_menu() if _handle_email_menu else _unavailable("Email Intelligence"),
-    "s": lambda: _handle_subdomain_menu() if _handle_subdomain_menu else _unavailable("Subdomain & ASN Recon"),
-    "c": lambda: _handle_cve_menu() if _handle_cve_menu else _unavailable("CVE Intelligence"),
-    "t": lambda: _handle_ssl_menu() if _handle_ssl_menu else _unavailable("SSL/TLS Analyzer"),
-    "f": lambda: _handle_feeds_menu() if _handle_feeds_menu else _unavailable("Live Threat Feeds"),
-    "m": lambda: _handle_mitre_menu() if _handle_mitre_menu else _unavailable("MITRE ATT&CK Mapper"),
-    "d": lambda: _show_dependency_menu() if _show_dependency_menu else _unavailable("Dependency Manager"),
+    "p": lambda: (
+        _handle_webapp_pentest()
+        if _handle_webapp_pentest
+        else _unavailable("Web App Pentest")
+    ),
+    "e": lambda: (
+        _handle_email_menu()
+        if _handle_email_menu
+        else _unavailable("Email Intelligence")
+    ),
+    "s": lambda: (
+        _handle_subdomain_menu()
+        if _handle_subdomain_menu
+        else _unavailable("Subdomain & ASN Recon")
+    ),
+    "c": lambda: (
+        _handle_cve_menu() if _handle_cve_menu else _unavailable("CVE Intelligence")
+    ),
+    "t": lambda: (
+        _handle_ssl_menu() if _handle_ssl_menu else _unavailable("SSL/TLS Analyzer")
+    ),
+    "f": lambda: (
+        _handle_feeds_menu()
+        if _handle_feeds_menu
+        else _unavailable("Live Threat Feeds")
+    ),
+    "m": lambda: (
+        _handle_mitre_menu()
+        if _handle_mitre_menu
+        else _unavailable("MITRE ATT&CK Mapper")
+    ),
+    "d": lambda: (
+        _show_dependency_menu()
+        if _show_dependency_menu
+        else _unavailable("Dependency Manager")
+    ),
 }
+
+
+def _parse_args():
+    """Parse command-line arguments for non-interactive mode."""
+    parser = argparse.ArgumentParser(
+        prog="threatscope",
+        description="ThreatScope - Terminal-based Threat Intelligence Platform",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s --url https://example.com
+  %(prog)s --ip 8.8.8.8
+  %(prog)s --domain example.com
+  %(prog)s --hash 44d88612fea8a8f36de82e1278abb02f
+  %(prog)s --cve CVE-2021-44228
+  %(prog)s --report example.com
+  %(prog)s --subdomains example.com
+  %(prog)s --email test@example.com
+  %(prog)s --ssl example.com
+        """,
+    )
+    parser.add_argument(
+        "--url", help="Check URL reputation (VirusTotal, PhishTank, GSB, APIVoid)"
+    )
+    parser.add_argument(
+        "--ip", help="Check IP reputation (AbuseIPDB, VT, GreyNoise, Shodan)"
+    )
+    parser.add_argument("--domain", help="Perform DNS lookup and WHOIS for domain")
+    parser.add_argument(
+        "--hash", help="Check file hash (VirusTotal, MalwareBazaar, Hybrid Analysis)"
+    )
+    parser.add_argument("--cve", help="Look up CVE details (NVD, CISA KEV, ExploitDB)")
+    parser.add_argument("--report", help="Run full IOC report (all checks)")
+    parser.add_argument("--subdomains", help="Enumerate subdomains for a domain")
+    parser.add_argument("--email", help="Check email intelligence (HIBP, EmailRep)")
+    parser.add_argument("--ssl", help="Analyze SSL certificate for a domain")
+    parser.add_argument(
+        "--export",
+        choices=["json", "csv", "txt"],
+        default="json",
+        help="Export format for reports (default: json)",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        help="Output file path (default: reports/ directory)",
+    )
+    parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Suppress banner and summary output",
+    )
+    return parser.parse_args()
+
+
+def _run_noninteractive(args) -> None:
+    """Run ThreatScope in non-interactive CLI mode."""
+    if not args.quiet:
+        print_banner()
+
+    if args.url:
+        utils.print_section_header(f"URL Reputation: {args.url}")
+        for fn in (
+            url_intel.check_virustotal_url,
+            url_intel.check_phishtank,
+            url_intel.check_google_safe_browsing,
+            url_intel.check_apivoid_url,
+        ):
+            result = fn(args.url)
+            if result.get("skipped"):
+                utils.print_skipped(result["source"])
+            else:
+                utils.print_result_table(result, result["source"])
+
+    elif args.ip:
+        utils.print_section_header(f"IP Reputation: {args.ip}")
+        for fn in (
+            ip_intel.check_virustotal_ip,
+            ip_intel.check_abuseipdb,
+            ip_intel.check_greynoise_ip,
+            ip_intel.lookup_shodan_ip,
+            ip_intel.get_ipinfo,
+            dns_tools.spamhaus_dnsbl_check,
+        ):
+            result = fn(args.ip)
+            if result.get("skipped"):
+                utils.print_skipped(result["source"])
+            else:
+                utils.print_result_table(result, result["source"])
+
+    elif args.domain:
+        utils.print_section_header(f"DNS & WHOIS: {args.domain}")
+        result = dns_tools.dns_lookup(args.domain)
+        utils.print_result_table(result, result["source"])
+        result = dns_tools.get_whois(args.domain)
+        utils.print_result_table(result, result["source"])
+
+    elif args.hash:
+        utils.print_section_header(f"Hash Intelligence: {args.hash}")
+        from modules import hash_intel
+
+        for fn in (
+            hash_intel.check_virustotal_hash,
+            hash_intel.check_malwarebazaar,
+            hash_intel.check_hybrid_analysis,
+            hash_intel.check_threatfox,
+        ):
+            result = fn(args.hash)
+            if result.get("skipped"):
+                utils.print_skipped(result["source"])
+            else:
+                utils.print_result_table(result, result["source"])
+
+    elif args.cve:
+        utils.print_section_header(f"CVE Intelligence: {args.cve}")
+        from modules import cve_intel
+
+        for fn in (
+            cve_intel.lookup_nvd,
+            cve_intel.check_cisa_kev,
+            cve_intel.search_exploitdb,
+            cve_intel.search_vulners,
+        ):
+            result = fn(args.cve)
+            if result.get("skipped"):
+                utils.print_skipped(result["source"])
+            else:
+                utils.print_result_table(result, result["source"])
+
+    elif args.report:
+        ioc = args.report
+        ioc_type = utils.detect_input_type(ioc)
+        if ioc_type == "unknown":
+            console.print(
+                "[bold red]Could not identify input as a URL, IP address, or domain.[/bold red]"
+            )
+            return
+
+        task_list = _build_task_list(ioc, ioc_type)
+        all_results = []
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[bold cyan]{task.description}"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            console=console,
+            transient=True,
+        ) as progress:
+            prog_task = progress.add_task("Running checks…", total=len(task_list))
+
+            with ThreadPoolExecutor(max_workers=6) as executor:
+                future_map = {
+                    executor.submit(fn, arg): (fn.__name__, arg)
+                    for fn, arg in task_list
+                }
+
+                for future in as_completed(future_map):
+                    fn_name, _ = future_map[future]
+                    try:
+                        result = future.result()
+                        if result:
+                            all_results.append(result)
+                    except Exception as exc:
+                        all_results.append(
+                            {
+                                "source": fn_name,
+                                "skipped": False,
+                                "error": True,
+                                "flagged": False,
+                                "risk_score": None,
+                                "details": {"Error": str(exc)},
+                            }
+                        )
+                    progress.update(prog_task, advance=1)
+
+        utils.print_section_header("Per-Source Results")
+        for result in all_results:
+            if result.get("skipped"):
+                utils.print_skipped(result.get("source", "Unknown"))
+            else:
+                utils.print_result_table(result, result.get("source", "Unknown"))
+
+        agg = utils.aggregate_risk_score(all_results)
+        _print_verdict_banner(agg)
+
+    elif args.subdomains:
+        from modules import subdomain_recon
+
+        utils.print_section_header(f"Subdomain Enumeration: {args.subdomains}")
+        result = subdomain_recon.enumerate_subdomains_crtsh(args.subdomains)
+        utils.print_result_table(result, "crt.sh")
+        result = subdomain_recon.enumerate_subdomains_hackertarget(args.subdomains)
+        utils.print_result_table(result, "HackerTarget")
+
+    elif args.email:
+        from modules import email_intel
+
+        utils.print_section_header(f"Email Intelligence: {args.email}")
+        result = email_intel.check_hibp(args.email)
+        if result.get("skipped"):
+            utils.print_skipped(result["source"])
+        else:
+            utils.print_result_table(result, result["source"])
+        result = email_intel.check_emailrep(args.email)
+        if result.get("skipped"):
+            utils.print_skipped(result["source"])
+        else:
+            utils.print_result_table(result, result["source"])
+
+    elif args.ssl:
+        from modules import ssl_analyzer
+
+        utils.print_section_header(f"SSL Analysis: {args.ssl}")
+        result = ssl_analyzer.grab_certificate(args.ssl)
+        if result.get("skipped"):
+            utils.print_skipped(result["source"])
+        else:
+            utils.print_result_table(result, result["source"])
 
 
 def main() -> None:
     """Application entry point — display banner, then loop."""
+    args = _parse_args()
+
+    # Check if any CLI arguments were provided for non-interactive mode
+    non_interactive = any(
+        [
+            args.url,
+            args.ip,
+            args.domain,
+            args.hash,
+            args.cve,
+            args.report,
+            args.subdomains,
+            args.email,
+            args.ssl,
+        ]
+    )
+
+    if non_interactive:
+        _run_noninteractive(args)
+        return
+
+    # Interactive mode
     print_banner()
 
-    # Quick dependency health hint
-    if _show_dependency_menu is not None:
-        try:
-            from modules.dependency_checker import run_all_checks
-            _dep_summary = run_all_checks()
-            _missing_req = len(_dep_summary.get("missing_required", []))
-            _missing_opt = len(_dep_summary.get("missing_optional", []))
-            _missing_key = len(_dep_summary.get("missing_api_keys", []))
-            if _missing_req > 0:
-                console.print(
-                    f"[bold red]⚠  {_missing_req} required dependencies missing.[/bold red] "
-                    f"[dim]Run [D] Dependency Manager to install.[/dim]"
-                )
-            elif _missing_opt > 0 or _missing_key > 0:
-                console.print(
-                    f"[yellow]ℹ  {_missing_opt} optional tools · {_missing_key} API keys not configured.[/yellow] "
-                    f"[dim]Run [D] for details.[/dim]"
-                )
-            else:
-                console.print("[bold green]✓  All dependencies satisfied.[/bold green]")
-            console.print()
-        except Exception:
-            pass
+    valid_keys = {k.lower() for k, *_ in _MENU_ITEMS if k != "─"}
 
     while True:
         display_menu()
         choice = Prompt.ask(
-            "[bold yellow]Select option[/bold yellow]",
-            choices=(
-                [str(i) for i in range(10)]
-                + ["n", "N", "w", "W", "h", "H", "o", "O",
-                   "e", "E", "s", "S", "c", "C", "t", "T",
-                   "f", "F", "m", "M", "d", "D"]
-            ),
-            show_choices=False,
-        )
-        choice = choice.lower()
+            "[bold bright_cyan]Select option[/bold bright_cyan]",
+            default="",
+        ).strip().lower()
+
+        if not choice:
+            continue
 
         if choice == "0":
-            console.print("\n[bold blue]Goodbye. Stay safe out there.[/bold blue]\n")
+            console.print("\n[bold bright_cyan]Goodbye.[/bold bright_cyan]\n")
             break
+
+        if choice not in valid_keys:
+            console.print(f"\n[bold red]Invalid option: '{choice.upper()}'[/bold red]\n")
+            continue
 
         handler = _HANDLERS.get(choice)
         if handler:
             try:
                 handler()
             except KeyboardInterrupt:
-                console.print("\n[dim]Interrupted — returning to menu.[/dim]")
-
-        Prompt.ask(
-            "\n[dim]Press Enter to return to the menu[/dim]",
-            default="",
-            show_default=False,
-        )
-        console.clear()
-        print_banner()
+                console.print("\n[yellow]Interrupted — returning to menu.[/yellow]\n")
+        else:
+            _unavailable(choice.upper())
 
 
 if __name__ == "__main__":

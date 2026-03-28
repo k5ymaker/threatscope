@@ -1,0 +1,9 @@
+- Nikto v2.6.0/
++ Target Host: olacabs.com
++ Target Port: 443
++ SSL Info:           Subject:  /C=IN/ST=Karnataka/L=Bengaluru/O=ANI Technologies Private Limited/CN=*.olacabs.com
+                      CN:       *.olacabs.com
+                      SAN:      *.olacabs.com, olacabs.com
+                      Ciphers:  AEAD-CHACHA20-POLY1305-SHA256
+                      Issuer:   /C=US/O=DigiCert Inc/OU=www.digicert.com/CN=GeoTrust TLS RSA CA G1
++ GET /: Server is using a wildcard certificate: *.olacabs.com. See: https://en.wikipedia.org/wiki/Wildcard_certificate: 

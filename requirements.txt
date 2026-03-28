@@ -26,3 +26,10 @@ sublist3r>=1.1
 reportlab>=4.0.0
 python-docx>=1.0.0
 Jinja2>=3.1.0
+
+# Web App Pentesting
+validators>=0.22.0
+# System binaries (install separately — not pip):
+# nikto gobuster ffuf wfuzz dirsearch sqlmap dalfox
+# nuclei wafw00f whatweb commix testssl.sh wpscan
+# droopescan arjun paramspider katana gospider trufflehog gitleaks

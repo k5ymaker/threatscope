@@ -494,9 +494,28 @@ def export_subdomains(
 # Sublist3r integration
 # ---------------------------------------------------------------------------
 
-def scan_sublist3r(domain: str, threads: int = 10, use_brute: bool = False) -> dict:
+def _read_sublist3r_output(tmp_path: Optional[str]) -> list:
+    """Read and deduplicate lines from a Sublist3r -o output file."""
+    if not tmp_path or not os.path.exists(tmp_path):
+        return []
+    try:
+        with open(tmp_path, "r", encoding="utf-8") as fh:
+            return sorted({line.strip() for line in fh if line.strip()})
+    except OSError:
+        return []
+
+
+def scan_sublist3r(
+    domain: str,
+    threads: int = 10,
+    use_brute: bool = False,
+) -> dict:
     """
     Enumerate subdomains using Sublist3r (binary or Python module fallback).
+
+    Runs without a hard timeout — press Ctrl+C at any time to cancel.
+    On cancellation, any subdomains already written to the output file are
+    returned as partial results rather than discarded.
 
     Args:
         domain:    Target domain.
@@ -519,6 +538,7 @@ def scan_sublist3r(domain: str, threads: int = 10, use_brute: bool = False) -> d
 
     threads  = min(max(1, threads), 30)
     tmp_path = None
+    proc     = None
 
     try:
         with tempfile.NamedTemporaryFile(
@@ -536,25 +556,44 @@ def scan_sublist3r(domain: str, threads: int = 10, use_brute: bool = False) -> d
         if use_brute:
             cmd.append("-b")
 
-        proc = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=300,
-        )
-
-        # Parse output file — never read raw stdout
-        subdomains: list = []
+        # Use Popen so KeyboardInterrupt can cleanly kill the child process
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         try:
-            with open(tmp_path, "r", encoding="utf-8") as fh:
-                raw = {line.strip() for line in fh if line.strip()}
-            subdomains = sorted(raw)
-        except OSError:
-            subdomains = []
+            _stdout, _stderr = proc.communicate()
+        except KeyboardInterrupt:
+            # User pressed Ctrl+C — kill child immediately, then recover partial results
+            proc.kill()
+            proc.wait()
+            partial = _read_sublist3r_output(tmp_path)
+            if partial:
+                count = len(partial)
+                details: dict = {
+                    "Domain":           domain,
+                    "Subdomains Found": f"{count} (partial — scan cancelled by user)",
+                    "Brute Force":      "Enabled" if use_brute else "Disabled",
+                    "Threads":          str(threads),
+                    "Execution Mode":   mode,
+                }
+                for i, sub in enumerate(partial[:30], 1):
+                    details[f"  Sub {i:02d}"] = sub
+                if count > 30:
+                    details["..."] = f"(+{count - 30} more — use export)"
+                return {
+                    "source":     source,
+                    "skipped":    False,
+                    "error":      False,
+                    "flagged":    False,
+                    "subdomains": partial,
+                    "details":    details,
+                }
+            return _not_found_result(source, f"Scan cancelled — no subdomains captured for {domain}.")
+
+        # Normal completion — parse output file
+        subdomains = _read_sublist3r_output(tmp_path)
 
         if not subdomains:
             if proc.returncode != 0:
-                stderr_snippet = (proc.stderr or "")[:200].strip()
+                stderr_snippet = (_stderr or "")[:200].strip()
                 return _error_result(
                     source,
                     f"Sublist3r exited with code {proc.returncode}. {stderr_snippet}",
@@ -583,8 +622,6 @@ def scan_sublist3r(domain: str, threads: int = 10, use_brute: bool = False) -> d
             "details":    details,
         }
 
-    except subprocess.TimeoutExpired:
-        return _error_result(source, "Sublist3r timed out after 300 seconds.")
     except OSError as exc:
         return _error_result(source, str(exc))
     finally:

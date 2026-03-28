@@ -110,7 +110,7 @@ def prompt_export(
 # ---------------------------------------------------------------------------
 
 def show_sublist3r_menu() -> None:
-    """Sub-menu for Sublist3r enumeration modes."""
+    """Sub-menu for Sublist3r enumeration modes. Press Ctrl+C during a scan to stop early."""
     if not SUBLIST3R_AVAILABLE:
         console.print(
             Panel(
@@ -168,8 +168,13 @@ def show_sublist3r_menu() -> None:
                 use_brute = True
 
             brute_tag = " + brute" if use_brute else ""
-            desc = f"Sublist3r scan for {domain} ({threads} threads{brute_tag})"
-            result = _animated_task(desc, scan_sublist3r, domain, threads, use_brute)
+            desc = f"Sublist3r scan for {domain} ({threads} threads{brute_tag})  [dim](Ctrl+C to stop)[/dim]"
+            try:
+                result = _animated_task(desc, scan_sublist3r, domain, threads, use_brute)
+            except KeyboardInterrupt:
+                console.print("\n[yellow]Scan interrupted.[/yellow]")
+                _pause()
+                continue
             _display_result(result, f"Sublist3r: {domain}")
 
             subdomains = result.get("subdomains", [])
@@ -294,6 +299,12 @@ def handle_subdomain_menu() -> None:
                         report["Sublist3r"] = s3r
                         if not s3r.get("skipped") and not s3r.get("error"):
                             all_subs.update(s3r.get("subdomains", []))
+                    except KeyboardInterrupt:
+                        report["Sublist3r"] = {
+                            "source": "Sublist3r", "skipped": False,
+                            "error": False, "flagged": False,
+                            "details": {"Status": "Sublist3r scan cancelled by user."},
+                        }
                     except Exception as exc:
                         report["Sublist3r"] = {
                             "source": "Sublist3r", "skipped": False,
