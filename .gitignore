@@ -34,3 +34,4 @@ build/
 .pytest_cache/
 .coverage
 htmlcov/
+systemdesign.txt
